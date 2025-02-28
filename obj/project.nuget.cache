@@ -1,0 +1,16 @@
+{
+  "version": 2,
+  "dgSpecHash": "Zy7lED3yjds=",
+  "success": true,
+  "projectFilePath": "D:\\Development\\Applications\\Kleptos\\Kleptos\\Kleptos.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\ItsBa\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\ItsBa\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.0\\microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\ItsBa\\.nuget\\packages\\nuget.versioning\\6.12.1\\nuget.versioning.6.12.1.nupkg.sha512",
+    "C:\\Users\\ItsBa\\.nuget\\packages\\velopack\\0.0.1053\\velopack.0.0.1053.nupkg.sha512",
+    "C:\\Users\\ItsBa\\.nuget\\packages\\microsoft.netcore.app.runtime.win-x64\\8.0.11\\microsoft.netcore.app.runtime.win-x64.8.0.11.nupkg.sha512",
+    "C:\\Users\\ItsBa\\.nuget\\packages\\microsoft.windowsdesktop.app.runtime.win-x64\\8.0.11\\microsoft.windowsdesktop.app.runtime.win-x64.8.0.11.nupkg.sha512",
+    "C:\\Users\\ItsBa\\.nuget\\packages\\microsoft.aspnetcore.app.runtime.win-x64\\8.0.11\\microsoft.aspnetcore.app.runtime.win-x64.8.0.11.nupkg.sha512"
+  ],
+  "logs": []
+}
