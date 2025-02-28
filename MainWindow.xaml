@@ -353,6 +353,7 @@
                             <StackPanel Orientation="Horizontal" Margin="0, 2, 0, 0">
                                 <TextBox x:Name="txtFileOutput" Style="{StaticResource FileOutputTextBox}" FontFamily="{StaticResource JetBrainsReg}" SelectionBrush="#4ecdc4" CaretBrush="#666" Padding="0" Height="30" Width="390" Margin="0, 0, 10, 0" Foreground="#e1e1e1"/>
                                 <Button Click="FileOutput_Click" Style="{StaticResource FilePathButton}" FontFamily="{StaticResource JetBrainsReg}" Background="#202020" Foreground="#e1e1e1" Width="30" Height="30">📁</Button>
+                                <Button Click="Update_Click" Style="{StaticResource FilePathButton}" FontFamily="{StaticResource JetBrainsReg}" Background="#202020" Foreground="#e1e1e1" Height="30" Margin="5,0,0,0">UPDATE</Button>
                             </StackPanel>
                         </StackPanel>
                         <Grid Grid.Row="2">

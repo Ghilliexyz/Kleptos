@@ -23,6 +23,10 @@ namespace Kleptos
             // Installer Build
             VelopackApp.Build().Run();
 
+            // Check and apply updates
+            //await UpdateKleptos();
+            UpdateKleptos().GetAwaiter();
+
             InitializeComponent();
 
             // Set the default download location to the user's "Downloads" folder
@@ -455,9 +459,9 @@ namespace Kleptos
             File.Move(tempPath, ytDlpPath);
         }
 
-        private static async Task UpdateMyApp()
+        private static async Task UpdateKleptos()
         {
-            var manager = new UpdateManager("https://github.com/Ghilliexyz/Kleptos/releases");
+            var manager = new UpdateManager("https://github.com/Ghilliexyz/Kleptos/releases/latest");
 
             var newVersion = await manager.CheckForUpdatesAsync();
             if (newVersion == null) return;
@@ -490,6 +494,11 @@ namespace Kleptos
         private void CopyLogs_Click(object sender, RoutedEventArgs e)
         {
             Clipboard.SetText(txtOutput.Text);
+        }
+
+        private async void Update_Click(object sender, RoutedEventArgs e)
+        {
+            await UpdateKleptos();
         }
     }
 }

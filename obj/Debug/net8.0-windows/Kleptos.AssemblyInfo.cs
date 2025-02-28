@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Kleptos")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cf45d5fb2367a3b4df4070ae096f03de1241a877")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+96bc4b313ebb6bfed6d0577629b5a91e038d0dfc")]
 [assembly: System.Reflection.AssemblyProductAttribute("Kleptos")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Kleptos")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
