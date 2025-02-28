@@ -457,7 +457,7 @@ namespace Kleptos
 
         private static async Task UpdateMyApp()
         {
-            var manager = new UpdateManager("");
+            var manager = new UpdateManager("https://github.com/Ghilliexyz/Kleptos/releases");
 
             var newVersion = await manager.CheckForUpdatesAsync();
             if (newVersion == null) return;

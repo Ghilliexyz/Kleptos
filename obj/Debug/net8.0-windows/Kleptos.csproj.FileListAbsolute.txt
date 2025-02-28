@@ -28,3 +28,4 @@ D:\Development\Applications\Kleptos\Kleptos\bin\Debug\net8.0-windows\NuGet.Versi
 D:\Development\Applications\Kleptos\Kleptos\bin\Debug\net8.0-windows\Velopack.dll
 D:\Development\Applications\Kleptos\Kleptos\obj\Debug\net8.0-windows\Kleptos.csproj.AssemblyReference.cache
 D:\Development\Applications\Kleptos\Kleptos\obj\Debug\net8.0-windows\Kleptos.csproj.Up2Date
+D:\Development\Applications\Kleptos\Kleptos\obj\Debug\net8.0-windows\Kleptos.sourcelink.json

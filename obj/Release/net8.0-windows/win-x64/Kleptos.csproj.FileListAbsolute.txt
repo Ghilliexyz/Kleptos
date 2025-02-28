@@ -487,3 +487,4 @@ D:\Development\Applications\Kleptos\Kleptos\obj\Release\net8.0-windows\win-x64\r
 D:\Development\Applications\Kleptos\Kleptos\obj\Release\net8.0-windows\win-x64\Kleptos.pdb
 D:\Development\Applications\Kleptos\Kleptos\obj\Release\net8.0-windows\win-x64\Kleptos.genruntimeconfig.cache
 D:\Development\Applications\Kleptos\Kleptos\obj\Release\net8.0-windows\win-x64\ref\Kleptos.dll
+D:\Development\Applications\Kleptos\Kleptos\obj\Release\net8.0-windows\win-x64\Kleptos.sourcelink.json
