@@ -23,10 +23,6 @@ namespace Kleptos
             // Installer Build
             VelopackApp.Build().Run();
 
-            // Check and apply updates
-            //await UpdateKleptos();
-            UpdateKleptos().GetAwaiter();
-
             InitializeComponent();
 
             // Set the default download location to the user's "Downloads" folder
