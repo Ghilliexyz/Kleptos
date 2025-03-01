@@ -26,6 +26,7 @@ bld/
 ffmpeg.exe
 yt-dlp.exe
 publish\Kleptos.exe
+publish\yt-dlp.exe
 
 # Visual Studio 2015 cache/options directory
 .vs/
