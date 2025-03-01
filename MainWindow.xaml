@@ -129,6 +129,27 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style TargetType="{x:Type Button}" x:Key="UpdateButton">
+            <Setter Property="Background" Value="#202020" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border x:Name="Border" Background="{TemplateBinding Background}" CornerRadius="5" BorderThickness="1" BorderBrush="#666">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Cursor" Value="Hand"/>
+                                <Setter Property="Background" Value="#4ECD61" TargetName="Border" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#41D94C" TargetName="Border" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
         <Style TargetType="{x:Type Button}" x:Key="WindowButton">
             <Setter Property="Background" Value="#202020" />
             <Setter Property="Template">
@@ -314,7 +335,10 @@
 
                 <!-- Minimize, Maximize and Close buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Style="{StaticResource WindowButton}" Background="#202020" Foreground="#e1e1e1" Width="20" Height="20" Margin="0,0,5,0" Click="MinimizeButton_Click">
+                    <Button Style="{StaticResource UpdateButton}" x:Name="UpdateButton" Background="#202020" Foreground="#e1e1e1" Height="20" Margin="0,0,5,0" Click="Update_Click">
+                        <TextBlock Text="update" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="5,0,5,0"/>
+                        </Button>
+                    <Button Style="{StaticResource WindowButton}" Background="#202020" Foreground="#e1e1e1" Width="20" Height="20" Margin="0,0,5,0" Click="MinimizeButton_Click">
                             <TextBlock Text="-" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
                         <Button Style="{StaticResource CloseWindowButton}" Background="#202020" Foreground="#e1e1e1" Width="20" Height="20" Click="CloseButton_Click">
@@ -353,7 +377,6 @@
                             <StackPanel Orientation="Horizontal" Margin="0, 2, 0, 0">
                                 <TextBox x:Name="txtFileOutput" Style="{StaticResource FileOutputTextBox}" FontFamily="{StaticResource JetBrainsReg}" SelectionBrush="#4ecdc4" CaretBrush="#666" Padding="0" Height="30" Width="390" Margin="0, 0, 10, 0" Foreground="#e1e1e1"/>
                                 <Button Click="FileOutput_Click" Style="{StaticResource FilePathButton}" FontFamily="{StaticResource JetBrainsReg}" Background="#202020" Foreground="#e1e1e1" Width="30" Height="30">📁</Button>
-                                <Button Click="Update_Click" Style="{StaticResource FilePathButton}" FontFamily="{StaticResource JetBrainsReg}" Background="#202020" Foreground="#e1e1e1" Height="30" Margin="5,0,0,0">UPDATE</Button>
                             </StackPanel>
                         </StackPanel>
                         <Grid Grid.Row="2">

@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
@@ -7,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using Velopack;
+using Velopack.Locators;
 
 namespace Kleptos
 {
@@ -17,6 +19,8 @@ namespace Kleptos
     {
         private readonly string ytDlpPath = "yt-dlp.exe";
         private readonly string gitHubReleaseUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest";
+
+        private bool hasUpdate = true;
 
         public MainWindow()
         {
@@ -29,6 +33,15 @@ namespace Kleptos
             SetDefaultOutputLocation();
             // Check for Updates
             CheckForYTDLPUpdate();
+
+            if(hasUpdate)
+            {
+                UpdateButton.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                UpdateButton.Visibility = Visibility.Collapsed;
+            }
         }
 
         private async void Download_Click(object sender, RoutedEventArgs e)
@@ -457,7 +470,16 @@ namespace Kleptos
 
         private static async Task UpdateKleptos()
         {
-            var manager = new UpdateManager("https://github.com/Ghilliexyz/Kleptos/releases/latest");
+            UpdateManager manager = new UpdateManager("https://github.com/Ghilliexyz/Kleptos/releases/latest");
+
+            ILogger logger = new FileLogger("log.txt");
+            WindowsVelopackLocator locator = new WindowsVelopackLocator(logger);
+
+            if(locator.IsPortable)
+            {
+                // do something
+                return;
+            }
 
             var newVersion = await manager.CheckForUpdatesAsync();
             if (newVersion == null) return;
@@ -495,6 +517,23 @@ namespace Kleptos
         private async void Update_Click(object sender, RoutedEventArgs e)
         {
             await UpdateKleptos();
+        }
+    }
+    class FileLogger : ILogger
+    {
+        private string filePath;
+
+        public FileLogger(string filePath)
+        {
+            this.filePath = filePath;
+        }
+
+        public IDisposable BeginScope<TState>(TState state) where TState : notnull => null;
+        public bool IsEnabled(LogLevel logLevel) => true;
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            var message = formatter(state, exception);
+            System.IO.File.AppendAllText(filePath, message + Environment.NewLine);
         }
     }
 }
