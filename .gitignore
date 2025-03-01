@@ -15,14 +15,17 @@
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
-[Rr]elease/
-Releases/
 x64/
 x86/
 bld/
+[Ll]og/
 [Bb]in/
 [Oo]bj/
-[Ll]og/
+[Rr]elease/
+[Rr]eleases/
+ffmpeg.exe
+yt-dlp.exe
+publish\Kleptos.exe
 
 # Visual Studio 2015 cache/options directory
 .vs/
