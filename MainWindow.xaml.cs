@@ -30,12 +30,13 @@ namespace Kleptos
 
             InitializeComponent();
 
+            // Check for a new version for Kleptos
+            CheckForKleptosUpdate();
+
             // Set the default download location to the user's "Downloads" folder
             SetDefaultOutputLocation();
             // Check for Updates
             CheckForYTDLPUpdate();
-            // Manage Update Buttons
-            ManageUpdateButtons();
         }
 
         private async void Download_Click(object sender, RoutedEventArgs e)
@@ -306,34 +307,6 @@ namespace Kleptos
             }
         }
 
-        //private async void GetCookies_Click(object sender, RoutedEventArgs e)
-        //{
-        //    txtOutput.Text = string.Empty;
-
-        //    string browserName = GetDefaultBrowser();
-        //    if (string.IsNullOrEmpty(browserName))
-        //    {
-        //        MessageBox.Show("Could not detect the default browser.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //        return;
-        //    }
-
-        //    string cookiesFile = "cookies.txt"; // File to store extracted cookies
-        //    string command = $"yt-dlp --cookies-from-browser {browserName} -o {cookiesFile} {txtURL.Text}";
-
-        //    await RunCMD(command);
-
-        //    if (File.Exists(cookiesFile))
-        //    {
-        //        string cookies = await File.ReadAllTextAsync(cookiesFile);
-        //        MessageBox.Show("Cookies retrieved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-        //        Console.WriteLine(cookies); // Use the cookies as needed
-        //    }
-        //    else
-        //    {
-        //        MessageBox.Show("Failed to retrieve cookies.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //}
-
         /// <summary>
         /// Detects the system's default browser name for yt-dlp.
         /// </summary>
@@ -464,23 +437,26 @@ namespace Kleptos
 
         private async Task CheckForKleptosUpdate()
         {
-            UpdateManager manager = new UpdateManager("https://github.com/Ghilliexyz/Kleptos/releases/latest");
+            // Configure GithubSource with the logger
+            GithubSource githubSource = GetGithubSource();
 
-            if(!manager.IsInstalled)
+            // Pass the GithubSource and logger to UpdateManager
+            UpdateManager manager = new UpdateManager(githubSource);
+
+            if (!manager.IsInstalled)
             {
                 MessageBoxResult result = MessageBox.Show(
-                    "You cannot check for an update since you're using the portable version." +
+                    "You cannot check for an update since you're using a version that isn't installed." +
                     "\nPlease go to \nhttps://github.com/Ghilliexyz/Kleptos/releases/latest" +
                     "\nand manually check for a new update or download and install Kleptos instead for auto updates." +
-                    $"\n\nCurrent {txtKleptosVersion.Text}", 
-                    "Kleptos Portable Version",
+                    $"\n\nCurrent {txtKleptosVersion.Text}",
+                    "Kleptos Uninstalled Version Detected",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
+                // Return if the app isn't installed and or correct Portable version
                 return;
             }
 
-            var newVersion = await manager.CheckForUpdatesAsync();
-            if (newVersion == null) return;
             // show update button
             // make this depend if there is a new version or not
             hasUpdate = true;
@@ -490,28 +466,47 @@ namespace Kleptos
 
         private static async Task UpdateKleptos()
         {
-            UpdateManager manager = new UpdateManager("https://github.com/Ghilliexyz/Kleptos/releases/latest");
-
+            // Initialize your custom logger
             ILogger logger = new FileLogger("log.txt");
-            WindowsVelopackLocator locator = new WindowsVelopackLocator(logger);
 
-            if (locator.IsPortable)
+            // Configure GithubSource with the logger
+            GithubSource githubSource = GetGithubSource();
+
+            // Pass the GithubSource and logger to UpdateManager
+            UpdateManager manager = new UpdateManager(githubSource);
+
+            try
             {
-                // do something
-                MessageBoxResult result = MessageBox.Show("There is a new Kleptos Update Available\nPlease go to \nhttps://github.com/Ghilliexyz/Kleptos/releases/latest \nand download the portable version again.\n\n--------------**NOTE**--------------\nYou are seeing this message because you use the portable version.\nPlease consider installing the app instead.", "Kleptos Update Available",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
-                return;
+                // Check for updates
+                var newVersion = await manager.CheckForUpdatesAsync();
+                if (newVersion == null)
+                {
+                    Console.WriteLine("No updates available.");
+                    return;
+                }
+
+                Console.WriteLine($"New version available: {newVersion.TargetFullRelease.Version}");
+
+                // Download new version
+                await manager.DownloadUpdatesAsync(newVersion);
+
+                // Install new version and restart app
+                manager.ApplyUpdatesAndRestart(newVersion);
             }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error during update process: {Message}", ex.Message);
+                Console.WriteLine($"Error: {ex.Message}");
+            }
+        }
 
-            var newVersion = await manager.CheckForUpdatesAsync();
-            if (newVersion == null) return;
-
-            // download new version
-            await manager.DownloadUpdatesAsync(newVersion);
-
-            // install new version and restart app
-            manager.ApplyUpdatesAndRestart(newVersion);
+        private static GithubSource GetGithubSource()
+        {
+            return new GithubSource(
+                repoUrl: "https://github.com/Ghilliexyz/Kleptos", // Your GitHub repo
+                accessToken: null,                               // Null for public repo, or PAT for private
+                prerelease: false                                // False for stable releases only
+            );
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
@@ -542,22 +537,15 @@ namespace Kleptos
             await UpdateKleptos();
         }
 
-        private async void CheckForUpdate_Click(object sender, RoutedEventArgs e)
-        {
-            await CheckForKleptosUpdate();
-        }
-
         private void ManageUpdateButtons()
         {
             if (hasUpdate)
             {
                 UpdateButton.Visibility = Visibility.Visible;
-                CheckForUpdateButton.Visibility = Visibility.Collapsed;
             }
             else
             {
                 UpdateButton.Visibility = Visibility.Collapsed;
-                CheckForUpdateButton.Visibility = Visibility.Visible;
             }
         }
     }

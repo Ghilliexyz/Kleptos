@@ -338,9 +338,6 @@
                     <Button Style="{StaticResource UpdateButton}" x:Name="UpdateButton" Background="#202020" Foreground="#e1e1e1" Height="20" Margin="0,0,5,0" Click="Update_Click">
                         <TextBlock Text="update" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="5,0,5,0"/>
                     </Button>
-                    <Button Style="{StaticResource WindowButton}" x:Name="CheckForUpdateButton" Background="#202020" Foreground="#e1e1e1" Height="20" Margin="0,0,5,0" Click="CheckForUpdate_Click">
-                        <TextBlock Text="check for update" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="5,0,5,0"/>
-                    </Button>
                     <Button Style="{StaticResource WindowButton}" Background="#202020" Foreground="#e1e1e1" Width="20" Height="20" Margin="0,0,5,0" Click="MinimizeButton_Click">
                         <TextBlock Text="-" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
