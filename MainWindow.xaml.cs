@@ -37,6 +37,8 @@ namespace Kleptos
             SetDefaultOutputLocation();
             // Check for Updates
             CheckForYTDLPUpdate();
+            // Manage the update buttons visibility
+            ManageUpdateButton();
         }
 
         private async void Download_Click(object sender, RoutedEventArgs e)
@@ -457,11 +459,18 @@ namespace Kleptos
                 return;
             }
 
-            // show update button
+            // Check for updates
+            var newVersion = await manager.CheckForUpdatesAsync();
+            if (newVersion == null)
+            {
+                return;
+            }
+
             // make this depend if there is a new version or not
             hasUpdate = true;
 
-            ManageUpdateButtons();
+            // show update button
+            ManageUpdateButton();
         }
 
         private static async Task UpdateKleptos()
@@ -481,11 +490,8 @@ namespace Kleptos
                 var newVersion = await manager.CheckForUpdatesAsync();
                 if (newVersion == null)
                 {
-                    Console.WriteLine("No updates available.");
                     return;
                 }
-
-                Console.WriteLine($"New version available: {newVersion.TargetFullRelease.Version}");
 
                 // Download new version
                 await manager.DownloadUpdatesAsync(newVersion);
@@ -496,7 +502,6 @@ namespace Kleptos
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error during update process: {Message}", ex.Message);
-                Console.WriteLine($"Error: {ex.Message}");
             }
         }
 
@@ -537,7 +542,7 @@ namespace Kleptos
             await UpdateKleptos();
         }
 
-        private void ManageUpdateButtons()
+        private void ManageUpdateButton()
         {
             if (hasUpdate)
             {
