@@ -324,24 +324,27 @@
             <!-- Custom Title Bar -->
             <Grid Background="#191919" Height="30" VerticalAlignment="Top" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Title Text -->
-                    <TextBlock Grid.Column="1" FontFamily="{StaticResource JetBrainsReg}" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#666" FontSize="8" Text="Version: 1.0.0"/>
+                <!-- Title&Version Text -->
+                    <TextBlock Grid.Column="0" FontFamily="{StaticResource JetBrainsReg}" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#666" FontSize="8" Text="Version: 1.0.0"/>
                     <TextBlock Grid.Column="1" FontFamily="{StaticResource JetBrainsReg}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#e1e1e1" FontSize="16" Text="Kleptos"/>
 
                 <!-- Minimize, Maximize and Close buttons -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                     <Button Style="{StaticResource UpdateButton}" x:Name="UpdateButton" Background="#202020" Foreground="#e1e1e1" Height="20" Margin="0,0,5,0" Click="Update_Click">
                         <TextBlock Text="update" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="5,0,5,0"/>
-                        </Button>
+                    </Button>
+                    <Button Style="{StaticResource WindowButton}" x:Name="CheckForUpdateButton" Background="#202020" Foreground="#e1e1e1" Height="20" Margin="0,0,5,0" Click="CheckForUpdate_Click">
+                        <TextBlock Text="check for update" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10" Margin="5,0,5,0"/>
+                    </Button>
                     <Button Style="{StaticResource WindowButton}" Background="#202020" Foreground="#e1e1e1" Width="20" Height="20" Margin="0,0,5,0" Click="MinimizeButton_Click">
-                            <TextBlock Text="-" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Button>
-                        <Button Style="{StaticResource CloseWindowButton}" Background="#202020" Foreground="#e1e1e1" Width="20" Height="20" Click="CloseButton_Click">
+                        <TextBlock Text="-" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                    <Button Style="{StaticResource CloseWindowButton}" Background="#202020" Foreground="#e1e1e1" Width="20" Height="20" Click="CloseButton_Click">
                         <TextBlock Text="X" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Button>
                 </StackPanel>

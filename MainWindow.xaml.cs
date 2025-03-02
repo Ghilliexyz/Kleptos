@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Velopack;
 using Velopack.Locators;
+using Velopack.Sources;
 
 namespace Kleptos
 {
@@ -20,7 +21,7 @@ namespace Kleptos
         private readonly string ytDlpPath = "yt-dlp.exe";
         private readonly string gitHubReleaseUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest";
 
-        private bool hasUpdate = true;
+        private static bool hasUpdate = false;
 
         public MainWindow()
         {
@@ -33,15 +34,8 @@ namespace Kleptos
             SetDefaultOutputLocation();
             // Check for Updates
             CheckForYTDLPUpdate();
-
-            if(hasUpdate)
-            {
-                UpdateButton.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                UpdateButton.Visibility = Visibility.Collapsed;
-            }
+            // Manage Update Buttons
+            ManageUpdateButtons();
         }
 
         private async void Download_Click(object sender, RoutedEventArgs e)
@@ -240,12 +234,12 @@ namespace Kleptos
 
         private string GetVideoName(string fileExtension)
         {
-            if(fileExtension == "ext")
+            if (fileExtension == "ext")
             {
                 fileExtension = "%(ext)s";
-            }    
+            }
 
-            if(txtFileName.Text == string.Empty)
+            if (txtFileName.Text == string.Empty)
             {
                 return $"\"{txtFileOutput.Text}\\%(title)s.{fileExtension}\"";
             }
@@ -294,7 +288,7 @@ namespace Kleptos
             {
                 txtFileOutput.Text = openFolderDialog.FolderName;
             }
-            else 
+            else
             {
                 SetDefaultOutputLocation();
             }
@@ -468,6 +462,20 @@ namespace Kleptos
             File.Move(tempPath, ytDlpPath);
         }
 
+        private async Task CheckForKleptosUpdate()
+        {
+            UpdateManager manager = new UpdateManager("https://github.com/Ghilliexyz/Kleptos/releases/latest");
+
+            var newVersion = await manager.CheckForUpdatesAsync();
+            if (newVersion == null) return;
+
+            // show update button
+            // make this depend if there is a new version or not
+            hasUpdate = true;
+
+            ManageUpdateButtons();
+        }
+
         private static async Task UpdateKleptos()
         {
             UpdateManager manager = new UpdateManager("https://github.com/Ghilliexyz/Kleptos/releases/latest");
@@ -475,9 +483,12 @@ namespace Kleptos
             ILogger logger = new FileLogger("log.txt");
             WindowsVelopackLocator locator = new WindowsVelopackLocator(logger);
 
-            if(locator.IsPortable)
+            if (locator.IsPortable)
             {
                 // do something
+                MessageBoxResult result = MessageBox.Show("There is a new Kleptos Update Available\nPlease go to \nhttps://github.com/Ghilliexyz/Kleptos/releases/latest \nand download the portable version again.\n\n--------------**NOTE**--------------\nYou are seeing this message because you use the portable version.\nPlease consider installing the app instead.", "Kleptos Update Available",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
                 return;
             }
 
@@ -517,6 +528,25 @@ namespace Kleptos
         private async void Update_Click(object sender, RoutedEventArgs e)
         {
             await UpdateKleptos();
+        }
+
+        private async void CheckForUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            await CheckForKleptosUpdate();
+        }
+
+        private void ManageUpdateButtons()
+        {
+            if (hasUpdate)
+            {
+                UpdateButton.Visibility = Visibility.Visible;
+                CheckForUpdateButton.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                UpdateButton.Visibility = Visibility.Collapsed;
+                CheckForUpdateButton.Visibility = Visibility.Visible;
+            }
         }
     }
     class FileLogger : ILogger
