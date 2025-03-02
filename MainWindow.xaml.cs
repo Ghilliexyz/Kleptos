@@ -466,9 +466,21 @@ namespace Kleptos
         {
             UpdateManager manager = new UpdateManager("https://github.com/Ghilliexyz/Kleptos/releases/latest");
 
+            if(!manager.IsInstalled)
+            {
+                MessageBoxResult result = MessageBox.Show(
+                    "You cannot check for an update since you're using the portable version." +
+                    "\nPlease go to \nhttps://github.com/Ghilliexyz/Kleptos/releases/latest" +
+                    "\nand manually check for a new update or download and install Kleptos instead for auto updates." +
+                    $"\n\nCurrent {txtKleptosVersion.Text}", 
+                    "Kleptos Portable Version",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+                return;
+            }
+
             var newVersion = await manager.CheckForUpdatesAsync();
             if (newVersion == null) return;
-
             // show update button
             // make this depend if there is a new version or not
             hasUpdate = true;
