@@ -83,8 +83,20 @@ namespace Kleptos
                 fileExtension = cmbFileExtension.ToLower(); // Normalize to lowercase
             }
 
+            string command = string.Empty;
+
+            if (cbThumbnailOnly.IsChecked == true)
+            {
+                txtOutput.Text += "lol";
+                command = $"yt-dlp --skip-download --write-thumbnail -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
+            }
+            else
+            {
+                txtOutput.Text += "not lol";
+                command = $"yt-dlp {GetFormat(fileExtension)} -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
+            }
+
             // Construct command string
-            string command = $"yt-dlp {GetFormat(fileExtension)} -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
 
             // Run the command
             await RunCMD(command);
@@ -242,13 +254,27 @@ namespace Kleptos
                 fileExtension = "%(ext)s";
             }
 
-            if (txtFileName.Text == string.Empty)
+            if(cbThumbnailOnly.IsChecked == true)
             {
-                return $"\"{txtFileOutput.Text}\\%(title)s.{fileExtension}\"";
+                if (txtFileName.Text == string.Empty)
+                {
+                    return $"\"{txtFileOutput.Text}\\%(title)s\"";
+                }
+                else
+                {
+                    return $"\"{txtFileOutput.Text}\\{txtFileName.Text}\"";
+                }
             }
             else
             {
-                return $"\"{txtFileOutput.Text}\\{txtFileName.Text}.{fileExtension}\"";
+                if (txtFileName.Text == string.Empty)
+                {
+                    return $"\"{txtFileOutput.Text}\\%(title)s.{fileExtension}\"";
+                }
+                else
+                {
+                    return $"\"{txtFileOutput.Text}\\{txtFileName.Text}.{fileExtension}\"";
+                }
             }
         }
 
