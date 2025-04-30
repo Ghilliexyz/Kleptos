@@ -87,12 +87,10 @@ namespace Kleptos
 
             if (cbThumbnailOnly.IsChecked == true)
             {
-                txtOutput.Text += "lol";
                 command = $"yt-dlp --skip-download --write-thumbnail -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
             }
             else
             {
-                txtOutput.Text += "not lol";
                 command = $"yt-dlp {GetFormat(fileExtension)} -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
             }
 
@@ -211,7 +209,7 @@ namespace Kleptos
         private string GetFormat(string fileExtension)
         {
             string[] extractableAudioFormats = { "mp3", "aac", "m4a", "wav" };
-            string[] videoFormats = { "mp4", "mkv", "flv", "3gp" };
+            string[] videoFormats = { "mp4", "mov", "mkv", "flv", "3gp" };
 
             if (extractableAudioFormats.Contains(fileExtension))
             {
@@ -226,6 +224,10 @@ namespace Kleptos
                 if (fileExtension == "mp4")
                 {
                     return "-S vcodec:h264,res,acodec:aac";
+                }
+                else if (fileExtension == "mov")
+                {
+                    return "-S vcodec:h264,res,acodec:aac --merge-output-format mov";
                 }
                 else if (fileExtension == "flv")
                 {
