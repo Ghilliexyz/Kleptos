@@ -21,6 +21,8 @@ namespace Kleptos
         private readonly string ytDlpPath = "yt-dlp.exe";
         private readonly string gitHubReleaseUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest";
 
+        private string cookiesTxtFile = String.Empty;
+
         private static bool hasUpdate = false;
 
         public MainWindow()
@@ -87,11 +89,11 @@ namespace Kleptos
 
             if (cbThumbnailOnly.IsChecked == true)
             {
-                command = $"yt-dlp --skip-download --write-thumbnail -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
+                command = $"yt-dlp --skip-download --write-thumbnail --cookies \"{cookiesTxtFile}\" -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
             }
             else
             {
-                command = $"yt-dlp {GetFormat(fileExtension)} -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
+                command = $"yt-dlp {GetFormat(fileExtension)} --cookies \"{cookiesTxtFile}\" -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
             }
 
             // Construct command string
@@ -195,12 +197,22 @@ namespace Kleptos
                 {
                     await Dispatcher.Invoke(async () =>
                     {
-                        MessageBoxResult result = MessageBox.Show("This video requires authentication. Extract cookies?", "Authentication Required", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                        MessageBoxResult result = MessageBox.Show("Please download any extention that allows you to download cookies, I recommend `Get cookies.txt LOCALLY`. \n\nOnce downloaded press `cookies` and locate the file you extracted from chrome. \nPressing `Ok` will open the extention in your browser.",
+                            "Authentication Required",
+                            MessageBoxButton.OKCancel,
+                            MessageBoxImage.Warning);
 
-                        if (result == MessageBoxResult.Yes)
+                        if(result == MessageBoxResult.OK)
                         {
-                            await ExtractCookiesAndRetry(cmd);
+                            string url = "https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc";
+                            Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
                         }
+                        //MessageBoxResult result = MessageBox.Show("This video requires authentication. Extract cookies?", "Authentication Required", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+                        //if (result == MessageBoxResult.Yes)
+                        //{
+                        //    await ExtractCookiesAndRetry(cmd);
+                        //}
                     });
                 }
             }
@@ -285,29 +297,58 @@ namespace Kleptos
             string browserName = GetDefaultBrowser();
             if (string.IsNullOrEmpty(browserName))
             {
-                MessageBox.Show("Could not detect the default browser.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(
+                    "Your default browser is not supported for cookie extraction.\n\n" +
+                    "Supported browsers: Chrome, Edge, Firefox, Brave, Opera, Vivaldi, Chromium.",
+                    "Unsupported Browser",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 return;
             }
 
-            string cookiesFile = "cookies.txt";
-            string extractCookiesCmd = $"yt-dlp --cookies-from-browser {browserName} -o {cookiesFile}";
+            //if (string.IsNullOrEmpty(browserName))
+            //{
+            //    MessageBox.Show("Could not detect the default browser.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            //    return;
+            //}
 
-            txtOutput.Text = "Extracting cookies...";
-            await RunCMD(extractCookiesCmd);
+            MessageBox.Show("Using browser cookies from: " + browserName, "Info", MessageBoxButton.OK, MessageBoxImage.Information);
 
-            if (File.Exists(cookiesFile))
-            {
-                MessageBox.Show("Cookies extracted successfully! Retrying download...", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                // Modify the original command to use cookies
-                string modifiedCmd = originalCmd + $" --cookies {cookiesFile}";
-                await RunCMD(modifiedCmd);
-            }
-            else
-            {
-                MessageBox.Show("Failed to extract cookies.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            // Modify the original command to use browser cookies directly
+            string modifiedCmd = originalCmd + $" --cookies-from-browser {browserName}";
+            txtOutput.Text = "Retrying download with browser cookies...";
+            await RunCMD(modifiedCmd);
         }
+
+        //private async Task ExtractCookiesAndRetry(string originalCmd)
+        //{
+        //    string browserName = GetDefaultBrowser();
+        //    if (string.IsNullOrEmpty(browserName))
+        //    {
+        //        MessageBox.Show("Could not detect the default browser.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //        return;
+        //    }
+
+        //    string cookiesFile = "cookies.txt";
+        //    string extractCookiesCmd = $"yt-dlp --cookies-from-browser {browserName} -o {cookiesFile}";
+
+        //    txtOutput.Text = "Extracting cookies...";
+        //    await RunCMD(extractCookiesCmd);
+
+        //    if (File.Exists(cookiesFile))
+        //    {
+        //        MessageBox.Show("Cookies extracted successfully! Retrying download...", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+
+        //        // Modify the original command to use cookies
+        //        string modifiedCmd = originalCmd + $" --cookies {cookiesFile}";
+        //        await RunCMD(modifiedCmd);
+        //    }
+        //    else
+        //    {
+        //        MessageBox.Show("Failed to extract cookies.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //    }
+        //}
 
         private void FileOutput_Click(object sender, RoutedEventArgs e)
         {
@@ -344,25 +385,35 @@ namespace Kleptos
         {
             try
             {
+                // Primary: Check current user's HTTP association
                 string registryKey = @"HKEY_CURRENT_USER\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice";
                 string browserProgId = Registry.GetValue(registryKey, "ProgId", null) as string;
+
+                // Fallback: Check HKEY_CLASSES_ROOT for .html default handler
+                if (string.IsNullOrEmpty(browserProgId))
+                {
+                    string fallbackKey = @"HKEY_CLASSES_ROOT\.html";
+                    browserProgId = Registry.GetValue(fallbackKey, null, null) as string;
+                }
 
                 if (string.IsNullOrEmpty(browserProgId))
                     return null;
 
-                // Convert known ProgIds to yt-dlp's expected browser names
-                // Chromium Browsers
-                if (browserProgId.Contains("Chrome")) return "chrome";
-                if (browserProgId.Contains("Chromium")) return "chromium";
-                if (browserProgId.Contains("Opera")) return "opera";
-                if (browserProgId.Contains("Edge")) return "edge";
-                if (browserProgId.Contains("Vivaldi")) return "vivaldi";
-                if (browserProgId.Contains("Brave")) return "brave";
-                if (browserProgId.Contains("Whale")) return "whale";
-                // Non-Chromium Browsers
-                if (browserProgId.Contains("Firefox")) return "firefox";
-                if (browserProgId.Contains("Safari")) return "safari";
+                browserProgId = browserProgId.ToLowerInvariant(); // normalize casing
 
+                // Chromium Browsers
+                if (browserProgId.Contains("chrome")) return "chrome";
+                if (browserProgId.Contains("chromium")) return "chromium";
+                if (browserProgId.Contains("opera")) return "opera";
+                if (browserProgId.Contains("edge")) return "edge";
+                if (browserProgId.Contains("vivaldi")) return "vivaldi";
+                if (browserProgId.Contains("brave")) return "brave";
+
+                // Non-Chromium
+                if (browserProgId.Contains("firefox")) return "firefox";
+                if (browserProgId.Contains("safari")) return "safari"; // Rare on Windows
+
+                // Optional note: Whale and others not supported by yt-dlp yet
                 return null;
             }
             catch
@@ -580,6 +631,27 @@ namespace Kleptos
             {
                 UpdateButton.Visibility = Visibility.Collapsed;
             }
+        }
+
+        private void FileCookies_Click(object sender, RoutedEventArgs e)
+        {
+            //MessageBoxResult result = MessageBox.Show("Please download any extention that allows you to download cookies, I recommend `Get cookies.txt LOCALLY`. \n\nOnce downloaded press `Yes` and locate the file you extracted from chrome. \nThen try again.", 
+            //    "Authentication Required", 
+            //    MessageBoxButton.YesNo, 
+            //    MessageBoxImage.Warning);
+
+            //if (result == MessageBoxResult.Yes)
+            //{
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.ShowDialog();
+
+            if (openFileDialog.FileName != string.Empty)
+            {
+                cookiesTxtFile = openFileDialog.FileName;
+            }
+            //}
+
         }
     }
     class FileLogger : ILogger
