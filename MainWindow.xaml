@@ -1,4 +1,5 @@
 ﻿<Window x:Class="Kleptos.MainWindow"
+        xmlns:wc="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,7 +7,13 @@
         xmlns:local="clr-namespace:Kleptos"
         mc:Ignorable="d"
         Title="Kleptos" Height="600" Width="1000" MinHeight="600" MinWidth="1000" WindowStartupLocation="CenterScreen" WindowStyle="None"
-        Background="Transparent" AllowsTransparency="True">
+        Background="Transparent" AllowsTransparency="True" ResizeMode="CanResize">
+    <WindowChrome.WindowChrome>
+        <wc:WindowChrome CaptionHeight="0"
+                     ResizeBorderThickness="6"
+                     GlassFrameThickness="0"
+                     UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
     <Window.Resources>
         <Style TargetType="{x:Type TextBox}" x:Key="URLInputTextBox">
             <Setter Property="Template">
@@ -330,7 +337,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Title&Version Text -->
-                    <TextBlock Grid.Column="0" x:Name="txtKleptosVersion" FontFamily="{StaticResource JetBrainsReg}" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#666" FontSize="8" Text="Version: 1.0.3"/>
+                    <TextBlock Grid.Column="0" x:Name="txtKleptosVersion" FontFamily="{StaticResource JetBrainsReg}" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#666" FontSize="8" Text="Version: 1.0.4"/>
                     <TextBlock Grid.Column="1" FontFamily="{StaticResource JetBrainsReg}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#e1e1e1" FontSize="16" Text="Kleptos"/>
 
                 <!-- Minimize, Maximize and Close buttons -->
