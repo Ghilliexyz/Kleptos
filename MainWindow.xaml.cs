@@ -207,12 +207,6 @@ namespace Kleptos
                             string url = "https://chromewebstore.google.com/detail/cclelndahbckbenkjhflpdbgdldlbecc";
                             Process.Start(new ProcessStartInfo("cmd", $"/c start {url}") { CreateNoWindow = true });
                         }
-                        //MessageBoxResult result = MessageBox.Show("This video requires authentication. Extract cookies?", "Authentication Required", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-                        //if (result == MessageBoxResult.Yes)
-                        //{
-                        //    await ExtractCookiesAndRetry(cmd);
-                        //}
                     });
                 }
             }
@@ -307,12 +301,6 @@ namespace Kleptos
                 return;
             }
 
-            //if (string.IsNullOrEmpty(browserName))
-            //{
-            //    MessageBox.Show("Could not detect the default browser.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            //    return;
-            //}
-
             MessageBox.Show("Using browser cookies from: " + browserName, "Info", MessageBoxButton.OK, MessageBoxImage.Information);
 
             // Modify the original command to use browser cookies directly
@@ -320,35 +308,6 @@ namespace Kleptos
             txtOutput.Text = "Retrying download with browser cookies...";
             await RunCMD(modifiedCmd);
         }
-
-        //private async Task ExtractCookiesAndRetry(string originalCmd)
-        //{
-        //    string browserName = GetDefaultBrowser();
-        //    if (string.IsNullOrEmpty(browserName))
-        //    {
-        //        MessageBox.Show("Could not detect the default browser.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //        return;
-        //    }
-
-        //    string cookiesFile = "cookies.txt";
-        //    string extractCookiesCmd = $"yt-dlp --cookies-from-browser {browserName} -o {cookiesFile}";
-
-        //    txtOutput.Text = "Extracting cookies...";
-        //    await RunCMD(extractCookiesCmd);
-
-        //    if (File.Exists(cookiesFile))
-        //    {
-        //        MessageBox.Show("Cookies extracted successfully! Retrying download...", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-
-        //        // Modify the original command to use cookies
-        //        string modifiedCmd = originalCmd + $" --cookies {cookiesFile}";
-        //        await RunCMD(modifiedCmd);
-        //    }
-        //    else
-        //    {
-        //        MessageBox.Show("Failed to extract cookies.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //}
 
         private void FileOutput_Click(object sender, RoutedEventArgs e)
         {
@@ -587,9 +546,9 @@ namespace Kleptos
         private static GithubSource GetGithubSource()
         {
             return new GithubSource(
-                repoUrl: "https://github.com/Ghilliexyz/Kleptos", // Your GitHub repo
-                accessToken: null,                               // Null for public repo, or PAT for private
-                prerelease: false                                // False for stable releases only
+                repoUrl: "https://github.com/Ghilliexyz/Kleptos", 
+                accessToken: null,
+                prerelease: false
             );
         }
 
@@ -635,13 +594,6 @@ namespace Kleptos
 
         private void FileCookies_Click(object sender, RoutedEventArgs e)
         {
-            //MessageBoxResult result = MessageBox.Show("Please download any extention that allows you to download cookies, I recommend `Get cookies.txt LOCALLY`. \n\nOnce downloaded press `Yes` and locate the file you extracted from chrome. \nThen try again.", 
-            //    "Authentication Required", 
-            //    MessageBoxButton.YesNo, 
-            //    MessageBoxImage.Warning);
-
-            //if (result == MessageBoxResult.Yes)
-            //{
             OpenFileDialog openFileDialog = new OpenFileDialog();
 
             openFileDialog.ShowDialog();
@@ -650,8 +602,6 @@ namespace Kleptos
             {
                 cookiesTxtFile = openFileDialog.FileName;
             }
-            //}
-
         }
     }
     class FileLogger : ILogger
