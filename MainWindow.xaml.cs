@@ -25,6 +25,9 @@ namespace Kleptos
 
         private static bool hasUpdate = false;
 
+        private static readonly Regex UrlRegex =
+            new Regex(@"https?://\S+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
         public MainWindow()
         {
             // Installer Build
@@ -46,6 +49,20 @@ namespace Kleptos
         private async void Download_Click(object sender, RoutedEventArgs e)
         {
             txtOutput.Text = string.Empty;
+
+            // Multi-download mode?
+            if (cbMultiDownload.IsChecked == true)
+            {
+                await DownloadMultiAsync();
+                return;
+            }
+
+            // ---- Single URL mode (your existing logic, slightly cleaned) ----
+            if (!TryGetValidUrl(txtURL.Text, out var url, out var error))
+            {
+                txtOutput.Text = error;
+                return;
+            }
 
             // Validate URL
             if (string.IsNullOrEmpty(txtURL.Text) || txtURL.Text.Length < 8)
@@ -102,6 +119,200 @@ namespace Kleptos
 
             // Run the command
             await RunCMD(command);
+        }
+
+        private async Task DownloadMultiAsync()
+        {
+            txtOutput.Text = string.Empty;
+
+            var raw = txtMultiUrls.Text ?? string.Empty;
+            var lines = raw
+                .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
+                .Select(l => l.Trim())
+                .Where(l => !string.IsNullOrWhiteSpace(l))
+                .ToList();
+
+            if (lines.Count == 0)
+            {
+                txtOutput.Text = "No links found (multi box is empty).";
+                return;
+            }
+
+            SetDefaultOutputLocation();
+
+            if (!txtFileOutput.Text.EndsWith("\\"))
+                txtFileOutput.Text += "\\";
+
+            if (!Directory.Exists(txtFileOutput.Text))
+            {
+                var result = MessageBox.Show(
+                    "The folder " + txtFileOutput.Text + " does not exist. Would you like to continue?\nThis will create a new folder.",
+                    "Folder Not Found!",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result == MessageBoxResult.No) return;
+            }
+
+            string fileExtension = GetSelectedExtension();
+
+            // Parse entries
+            var entries = new List<(string Url, string BaseName)>();
+            foreach (var line in lines)
+            {
+                if (!TryParseMultiLine(line, out var url, out var baseName))
+                    continue;
+
+                entries.Add((url, baseName));
+            }
+
+            if (entries.Count == 0)
+            {
+                txtOutput.Text = "No valid links found in multi box.";
+                return;
+            }
+
+            // Sequential download (one after another)
+            int i = 0;
+            foreach (var (url, baseName) in entries)
+            {
+                i++;
+
+                // Build -o output template:
+                // - if user chose "default": keep %(ext)s
+                // - else: force chosen extension by naming it explicitly
+                var outputTemplate = BuildOutputTemplate(baseName, fileExtension);
+
+                string command;
+                if (cbThumbnailOnly.IsChecked == true)
+                {
+                    command = $"yt-dlp --skip-download --write-thumbnail{GetCookiesArgument()} -o {outputTemplate} --no-mtime \"{url}\"";
+                }
+                else
+                {
+                    command = $"yt-dlp {GetFormat(fileExtension)}{GetCookiesArgument()} -o {outputTemplate} --no-mtime \"{url}\"";
+                }
+
+                // Optional: show progress in your console
+                txtOutput.Text += $"[{i}/{entries.Count}] {baseName}\n{url}\n\n";
+
+                await RunCMD(command);
+            }
+        }
+
+        private string GetSelectedExtension()
+        {
+            string fileExtension = "ext"; // default (yt-dlp decides)
+            var typeItem = (ComboBoxItem)cmbFileFormats.SelectedItem;
+            var cmbFileExtension = typeItem.Content.ToString()!;
+
+            if (!string.Equals(cmbFileExtension, "default", StringComparison.OrdinalIgnoreCase))
+                fileExtension = cmbFileExtension.ToLowerInvariant();
+
+            return fileExtension;
+        }
+
+        private static bool TryGetValidUrl(string? input, out string url, out string error)
+        {
+            url = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(input) || input.Trim().Length < 8)
+            {
+                error = "No link Found";
+                return false;
+            }
+
+            input = input.Trim();
+
+            if (!(input.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+                  input.StartsWith("http://", StringComparison.OrdinalIgnoreCase)))
+            {
+                error = "Invalid Link";
+                return false;
+            }
+
+            error = string.Empty;
+            url = input;
+            return true;
+        }
+
+        // Parses:
+        // "1 testTitle https://..."  -> baseName: "1 - testTitle"
+        // "testTitle https://..."    -> baseName: "testTitle"
+        private static bool TryParseMultiLine(string line, out string url, out string baseName)
+        {
+            url = string.Empty;
+            baseName = string.Empty;
+
+            var m = UrlRegex.Match(line);
+            if (!m.Success) return false;
+
+            url = m.Value.Trim();
+
+            // Everything BEFORE the URL is title (+ maybe leading number)
+            var left = line.Substring(0, m.Index).Trim();
+
+            int? indexNum = null;
+            string titlePart = left;
+
+            // Check if first token is a number
+            if (!string.IsNullOrWhiteSpace(left))
+            {
+                var parts = left.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 1 && int.TryParse(parts[0], out var n))
+                {
+                    indexNum = n;
+                    titlePart = parts.Length == 2 ? parts[1].Trim() : string.Empty;
+                }
+            }
+
+            titlePart = titlePart.Trim();
+
+            // If user gave no title, fallback
+            if (string.IsNullOrWhiteSpace(titlePart))
+                titlePart = "download";
+
+            titlePart = SanitizeFileName(titlePart);
+
+            baseName = indexNum.HasValue
+                ? $"{indexNum.Value} - {titlePart}"
+                : titlePart;
+
+            return true;
+        }
+
+        private string BuildOutputTemplate(string baseName, string fileExtension)
+        {
+            // Ensure safe baseName (already sanitized, but keep it safe)
+            baseName = SanitizeFileName(baseName);
+
+            var fullBase = Path.Combine(txtFileOutput.Text, baseName);
+
+            // IMPORTANT: yt-dlp wants quotes around paths with spaces
+            // If user selected "default" => use %(ext)s
+            if (string.Equals(fileExtension, "ext", StringComparison.OrdinalIgnoreCase))
+                return $"\"{fullBase}.%(ext)s\"";
+
+            // If user selected a specific ext => force it in the filename
+            return $"\"{fullBase}.{fileExtension}\"";
+        }
+
+        private static string SanitizeFileName(string name)
+        {
+            // Remove invalid Windows filename chars
+            foreach (var c in Path.GetInvalidFileNameChars())
+                name = name.Replace(c, '_');
+
+            // Extra cleanup
+            name = Regex.Replace(name, @"\s+", " ").Trim();
+
+            // Windows doesn't like trailing dots/spaces
+            name = name.TrimEnd('.', ' ');
+
+            if (string.IsNullOrWhiteSpace(name))
+                name = "download";
+
+            return name;
         }
 
         private async Task RunCMD(string cmd)
