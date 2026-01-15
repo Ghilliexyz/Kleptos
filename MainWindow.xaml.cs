@@ -239,6 +239,8 @@ namespace Kleptos
         // Parses:
         // "1 testTitle https://..."  -> baseName: "1 - testTitle"
         // "testTitle https://..."    -> baseName: "testTitle"
+        // "https://..."              -> baseName: "%(title)s"
+        // "1 https://..."            -> baseName: "1 - %(title)s"
         private static bool TryParseMultiLine(string line, out string url, out string baseName)
         {
             url = string.Empty;
@@ -266,13 +268,11 @@ namespace Kleptos
                 }
             }
 
-            titlePart = titlePart.Trim();
-
-            // If user gave no title, fallback
+            // If there is NO title text, use yt-dlp metadata title
             if (string.IsNullOrWhiteSpace(titlePart))
-                titlePart = "download";
-
-            titlePart = SanitizeFileName(titlePart);
+                titlePart = "%(title)s";
+            else
+                titlePart = SanitizeFileName(titlePart);
 
             baseName = indexNum.HasValue
                 ? $"{indexNum.Value} - {titlePart}"
@@ -283,18 +283,42 @@ namespace Kleptos
 
         private string BuildOutputTemplate(string baseName, string fileExtension)
         {
-            // Ensure safe baseName (already sanitized, but keep it safe)
-            baseName = SanitizeFileName(baseName);
+            // Preserve yt-dlp template variables like %(title)s
+            // but still sanitize user text around it.
+            baseName = SanitizeFileNameTemplateSafe(baseName);
 
             var fullBase = Path.Combine(txtFileOutput.Text, baseName);
 
-            // IMPORTANT: yt-dlp wants quotes around paths with spaces
-            // If user selected "default" => use %(ext)s
             if (string.Equals(fileExtension, "ext", StringComparison.OrdinalIgnoreCase))
                 return $"\"{fullBase}.%(ext)s\"";
 
-            // If user selected a specific ext => force it in the filename
             return $"\"{fullBase}.{fileExtension}\"";
+        }
+
+        private static string SanitizeFileNameTemplateSafe(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return "%(title)s";
+
+            // Temporarily protect yt-dlp tokens so they don't get destroyed by filename sanitizing
+            const string TITLE_TOKEN = "___YTDLP_TITLE___";
+            const string EXT_TOKEN = "___YTDLP_EXT___";
+
+            name = name.Replace("%(title)s", TITLE_TOKEN, StringComparison.OrdinalIgnoreCase)
+                       .Replace("%(ext)s", EXT_TOKEN, StringComparison.OrdinalIgnoreCase);
+
+            // Sanitize the rest (your existing sanitiser)
+            name = SanitizeFileName(name);
+
+            // Restore tokens
+            name = name.Replace(TITLE_TOKEN, "%(title)s")
+                       .Replace(EXT_TOKEN, "%(ext)s");
+
+            // If sanitizing nuked everything, fallback safely
+            if (string.IsNullOrWhiteSpace(name))
+                name = "%(title)s";
+
+            return name;
         }
 
         private static string SanitizeFileName(string name)
