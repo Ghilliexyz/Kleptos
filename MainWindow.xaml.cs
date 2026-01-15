@@ -89,11 +89,13 @@ namespace Kleptos
 
             if (cbThumbnailOnly.IsChecked == true)
             {
-                command = $"yt-dlp --skip-download --write-thumbnail --cookies \"{cookiesTxtFile}\" -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
+                //command = $"yt-dlp --skip-download --write-thumbnail --cookies \"{cookiesTxtFile}\" -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
+                command = $"yt-dlp --skip-download --write-thumbnail{GetCookiesArgument()} -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
             }
             else
             {
-                command = $"yt-dlp {GetFormat(fileExtension)} --cookies \"{cookiesTxtFile}\" -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
+                //command = $"yt-dlp {GetFormat(fileExtension)} --cookies \"{cookiesTxtFile}\" -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
+                command = $"yt-dlp {GetFormat(fileExtension)}{GetCookiesArgument()} -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
             }
 
             // Construct command string
@@ -246,7 +248,8 @@ namespace Kleptos
             }
             else if (fileExtension == "ext")
             {
-                return "-f bestvideo+bestaudio";
+                //return "-f bestvideo+bestaudio";
+                return "-f best";
             }
             else
             {
@@ -603,7 +606,20 @@ namespace Kleptos
                 cookiesTxtFile = openFileDialog.FileName;
             }
         }
+
+        private string GetCookiesArgument()
+        {
+            if (!string.IsNullOrWhiteSpace(cookiesTxtFile) && File.Exists(cookiesTxtFile))
+            {
+                return $" --cookies \"{cookiesTxtFile}\"";
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
     }
+
     class FileLogger : ILogger
     {
         private string filePath;
