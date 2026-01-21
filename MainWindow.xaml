@@ -337,7 +337,7 @@
                 </Grid.ColumnDefinitions>
 
                 <!-- Title&Version Text -->
-                    <TextBlock Grid.Column="0" x:Name="txtKleptosVersion" FontFamily="{StaticResource JetBrainsReg}" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#666" FontSize="8" Text="Version: 1.0.6"/>
+                    <TextBlock Grid.Column="0" x:Name="txtKleptosVersion" FontFamily="{StaticResource JetBrainsReg}" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#666" FontSize="8" Text="Version: 1.0.7"/>
                     <TextBlock Grid.Column="1" FontFamily="{StaticResource JetBrainsReg}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="#e1e1e1" FontSize="16" Text="Kleptos"/>
 
                 <!-- Minimize, Maximize and Close buttons -->

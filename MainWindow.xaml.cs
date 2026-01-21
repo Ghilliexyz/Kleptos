@@ -466,7 +466,7 @@ namespace Kleptos
             {
                 if (fileExtension == "mp4")
                 {
-                    return "-S vcodec:h264,res,acodec:aac";
+                    return "-S vcodec:h264,res,acodec:aac --merge-output-format mp4";
                 }
                 else if (fileExtension == "mov")
                 {
@@ -484,7 +484,8 @@ namespace Kleptos
             else if (fileExtension == "ext")
             {
                 //return "-f bestvideo+bestaudio";
-                return "-f best";
+                //return "-f best";
+                return "-f bv*[ext=mp4]+ba[ext=m4a]/bv*+ba/b[ext=mp4]/b";
             }
             else
             {
