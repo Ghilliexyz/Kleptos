@@ -413,7 +413,7 @@
                     <!-- Version Text -->
                     <TextBlock Grid.Column="0" x:Name="txtKleptosVersion" FontFamily="{StaticResource JetBrainsReg}"
                                VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20,0,0,0"
-                               Foreground="{StaticResource TextSecondary}" FontSize="11" Text="v1.1.0"/>
+                               Foreground="{StaticResource TextSecondary}" FontSize="11" Text="v1.0.8"/>
 
                     <!-- Title -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
