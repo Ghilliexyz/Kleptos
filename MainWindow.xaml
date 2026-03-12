@@ -26,6 +26,95 @@
         <SolidColorBrush x:Key="TextPrimary" Color="#e1e1e1"/>
         <SolidColorBrush x:Key="TextSecondary" Color="#888888"/>
         <SolidColorBrush x:Key="BorderSubtle" Color="#333333"/>
+        <SolidColorBrush x:Key="ScrollBarThumb" Color="#3a3a3a"/>
+        <SolidColorBrush x:Key="ScrollBarThumbHover" Color="#505050"/>
+        <SolidColorBrush x:Key="ScrollBarThumbPressed" Color="#606060"/>
+
+        <!-- Scrollbar Thumb (vertical) -->
+        <Style x:Key="ScrollBarThumbStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border x:Name="thumbBorder" CornerRadius="3" Background="{StaticResource ScrollBarThumb}" Margin="1"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="thumbBorder" Property="Background" Value="{StaticResource ScrollBarThumbHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="thumbBorder" Property="Background" Value="{StaticResource ScrollBarThumbPressed}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Scrollbar Thumb (horizontal) -->
+        <Style x:Key="ScrollBarThumbHorizontalStyle" TargetType="{x:Type Thumb}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border x:Name="thumbBorder" CornerRadius="3" Background="{StaticResource ScrollBarThumb}" Margin="1"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="thumbBorder" Property="Background" Value="{StaticResource ScrollBarThumbHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="thumbBorder" Property="Background" Value="{StaticResource ScrollBarThumbPressed}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Vertical ScrollBar -->
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Width" Value="8"/>
+            <Setter Property="MinWidth" Value="8"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ScrollBar}">
+                        <Grid>
+                            <Border CornerRadius="4" Background="Transparent"/>
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.Thumb>
+                                    <Thumb Style="{StaticResource ScrollBarThumbStyle}" MinHeight="20"/>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Width" Value="Auto"/>
+                    <Setter Property="MinWidth" Value="0"/>
+                    <Setter Property="Height" Value="8"/>
+                    <Setter Property="MinHeight" Value="8"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Grid>
+                                    <Border CornerRadius="4" Background="Transparent"/>
+                                    <Track x:Name="PART_Track">
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource ScrollBarThumbHorizontalStyle}" MinWidth="20"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
         <!-- Modern URL Input TextBox -->
         <Style TargetType="{x:Type TextBox}" x:Key="URLInputTextBox">
@@ -101,7 +190,17 @@
                     <ControlTemplate TargetType="ScrollViewer">
                         <Border CornerRadius="12" Background="{StaticResource BackgroundCard}" BorderThickness="0" Padding="12">
                             <Grid>
-                                <ScrollContentPresenter />
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <ScrollContentPresenter Grid.Column="0"/>
+                                <ScrollBar x:Name="PART_VerticalScrollBar" Grid.Column="1"
+                                           Value="{TemplateBinding VerticalOffset}"
+                                           Maximum="{TemplateBinding ScrollableHeight}"
+                                           ViewportSize="{TemplateBinding ViewportHeight}"
+                                           Visibility="{TemplateBinding ComputedVerticalScrollBarVisibility}"
+                                           Margin="4,0,0,0"/>
                             </Grid>
                         </Border>
                     </ControlTemplate>
@@ -359,6 +458,40 @@
             </Setter>
         </Style>
 
+        <!-- Pill Toggle Button (RadioButton) -->
+        <Style TargetType="{x:Type RadioButton}" x:Key="PillToggleButton">
+            <Setter Property="Background" Value="{StaticResource BackgroundInput}"/>
+            <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+            <Setter Property="FontFamily" Value="{StaticResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
+                        <Border x:Name="Border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="16,6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource AccentColor}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource BackgroundHover}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsChecked" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="Border" Property="Background" Value="{StaticResource AccentColorHover}"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Modern CheckBox -->
         <Style TargetType="{x:Type CheckBox}" x:Key="ModernCheckBox">
             <Setter Property="Template">
@@ -413,7 +546,7 @@
                     <!-- Version Text -->
                     <TextBlock Grid.Column="0" x:Name="txtKleptosVersion" FontFamily="{StaticResource JetBrainsReg}"
                                VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20,0,0,0"
-                               Foreground="{StaticResource TextSecondary}" FontSize="11" Text="v1.0.8"/>
+                               Foreground="{StaticResource TextSecondary}" FontSize="11" Text="v1.0.9"/>
 
                     <!-- Title -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -488,18 +621,72 @@
                         </Grid>
                     </StackPanel>
 
-                    <!-- Console Output Section -->
+                    <!-- Output Section with Pill Toggle -->
                     <Grid Grid.Row="2">
-                        <ScrollViewer Name="scrollViewer" Style="{StaticResource ConsoleOutputScrollViewer}" FontSize="11" VerticalScrollBarVisibility="Auto">
-                            <TextBox Name="txtOutput" Style="{StaticResource ConsoleOutputTextBox}" FontFamily="{StaticResource JetBrainsReg}"
-                                     SelectionBrush="{StaticResource AccentColor}" Foreground="{StaticResource AccentColor}"
-                                     Text="{Binding Text, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"/>
-                        </ScrollViewer>
-                        <Button Click="CopyLogs_Click" Style="{StaticResource FilePathButton}" FontFamily="{StaticResource JetBrainsReg}"
-                                Foreground="{StaticResource TextPrimary}" Width="36" Height="36" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8">
-                            <Path Data="M 4 2 L 12 2 L 12 12 L 4 12 Z M 6 12 L 6 14 L 14 14 L 14 4 L 12 4"
-                                  Stroke="{StaticResource TextSecondary}" StrokeThickness="1.5" Fill="Transparent" Width="14" Height="14"/>
-                        </Button>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Pill Toggle Bar -->
+                        <Border Grid.Row="0" Background="{StaticResource BackgroundCard}" CornerRadius="10" Padding="4" Margin="0,0,0,8">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="rbShowInfo" Content="Show Info" Style="{StaticResource PillToggleButton}"
+                                             GroupName="OutputToggle" IsChecked="True" Checked="OutputToggle_Checked"/>
+                                <RadioButton x:Name="rbConsole" Content="Console" Style="{StaticResource PillToggleButton}"
+                                             GroupName="OutputToggle" Margin="4,0,0,0" Checked="OutputToggle_Checked"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Show Info Panel -->
+                        <Border x:Name="pnlShowInfo" Grid.Row="1" CornerRadius="12" Background="{StaticResource BackgroundCard}" Padding="16" Visibility="Visible">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- Progress Header -->
+                                <Grid Grid.Row="0" Margin="0,0,0,8">
+                                    <TextBlock Text="Progress" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
+                                               FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="txtProgressPercent" Text="0%" Foreground="{StaticResource AccentColor}" FontFamily="{StaticResource JetBrainsReg}"
+                                               FontSize="12" FontWeight="Bold" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                </Grid>
+
+                                <!-- Progress Bar -->
+                                <Border Grid.Row="1" Height="8" CornerRadius="4" Background="{StaticResource BackgroundInput}" Margin="0,0,0,10">
+                                    <Border x:Name="progressBarFill" Height="8" CornerRadius="4" Background="{StaticResource AccentColor}"
+                                            HorizontalAlignment="Left" Width="0"/>
+                                </Border>
+
+                                <!-- Current Status -->
+                                <TextBlock x:Name="txtCurrentStatus" Grid.Row="2" Text="Waiting to start..."
+                                           Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}"
+                                           FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,0,0,12"/>
+
+                                <!-- Stats Area -->
+                                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+                                    <StackPanel x:Name="pnlStats"/>
+                                </ScrollViewer>
+                            </Grid>
+                        </Border>
+
+                        <!-- Console Panel (existing, now toggled) -->
+                        <Grid x:Name="pnlConsole" Grid.Row="1" Visibility="Collapsed">
+                            <ScrollViewer Name="scrollViewer" Style="{StaticResource ConsoleOutputScrollViewer}" FontSize="11" VerticalScrollBarVisibility="Auto">
+                                <TextBox Name="txtOutput" Style="{StaticResource ConsoleOutputTextBox}" FontFamily="{StaticResource JetBrainsReg}"
+                                         SelectionBrush="{StaticResource AccentColor}" Foreground="{StaticResource AccentColor}"
+                                         Text="{Binding Text, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"/>
+                            </ScrollViewer>
+                            <Button Click="CopyLogs_Click" Style="{StaticResource FilePathButton}" FontFamily="{StaticResource JetBrainsReg}"
+                                    Foreground="{StaticResource TextPrimary}" Width="36" Height="36" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8">
+                                <Path Data="M 4 2 L 12 2 L 12 12 L 4 12 Z M 6 12 L 6 14 L 14 14 L 14 4 L 12 4"
+                                      Stroke="{StaticResource TextSecondary}" StrokeThickness="1.5" Fill="Transparent" Width="14" Height="14"/>
+                            </Button>
+                        </Grid>
                     </Grid>
                 </Grid>
 

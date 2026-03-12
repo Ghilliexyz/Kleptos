@@ -13,6 +13,52 @@ using Velopack.Sources;
 
 namespace Kleptos
 {
+    public class DownloadItemStats
+    {
+        public string Url { get; set; } = string.Empty;
+        public string FileName { get; set; } = string.Empty;
+        public bool Succeeded { get; set; }
+        public bool AlreadyDownloaded { get; set; }
+        public string ErrorMessage { get; set; } = string.Empty;
+        public double FileSizeMB { get; set; }
+        public double SpeedMBps { get; set; }
+        public TimeSpan Duration { get; set; }
+        public DateTime StartTime { get; set; }
+        public DateTime EndTime { get; set; }
+    }
+
+    public class SessionStats
+    {
+        public List<DownloadItemStats> Items { get; set; } = new();
+        public int TotalItems { get; set; }
+        public int CompletedItems { get; set; }
+        public DateTime SessionStart { get; set; } = DateTime.Now;
+
+        public int SuccessCount => Items.Count(i => i.Succeeded && !i.AlreadyDownloaded);
+        public int FailCount => Items.Count(i => !i.Succeeded && !i.AlreadyDownloaded);
+        public int AlreadyDownloadedCount => Items.Count(i => i.AlreadyDownloaded);
+        public double TotalSizeMB => Items.Sum(i => i.FileSizeMB);
+        public double AverageSpeedMBps
+        {
+            get
+            {
+                var withSpeed = Items.Where(i => i.SpeedMBps > 0).ToList();
+                return withSpeed.Count > 0 ? withSpeed.Average(i => i.SpeedMBps) : 0;
+            }
+        }
+        public TimeSpan TotalDuration => DateTime.Now - SessionStart;
+        public TimeSpan AverageItemDuration
+        {
+            get
+            {
+                var withDuration = Items.Where(i => i.Duration > TimeSpan.Zero).ToList();
+                return withDuration.Count > 0 ? TimeSpan.FromTicks((long)withDuration.Average(i => i.Duration.Ticks)) : TimeSpan.Zero;
+            }
+        }
+        public DownloadItemStats? LargestFile => Items.Where(i => i.FileSizeMB > 0).OrderByDescending(i => i.FileSizeMB).FirstOrDefault();
+        public DownloadItemStats? SmallestFile => Items.Where(i => i.FileSizeMB > 0).OrderBy(i => i.FileSizeMB).FirstOrDefault();
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -27,6 +73,25 @@ namespace Kleptos
 
         private static readonly Regex UrlRegex =
             new Regex(@"https?://\S+", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+        // yt-dlp output parsing regexes
+        private static readonly Regex ProgressRegex =
+            new Regex(@"\[download\]\s+([\d.]+)%\s+of\s+~?([\d.]+)([\w/]+)\s+at\s+([\d.]+)([\w/]+)", RegexOptions.Compiled);
+        private static readonly Regex ProgressCompleteRegex =
+            new Regex(@"\[download\]\s+100%\s+of\s+~?([\d.]+)([\w/]+)", RegexOptions.Compiled);
+        private static readonly Regex DestinationRegex =
+            new Regex(@"\[download\]\s+Destination:\s+(.+)$", RegexOptions.Compiled);
+        private static readonly Regex MergerRegex =
+            new Regex(@"\[Merger\]\s+Merging formats into\s+""(.+)""", RegexOptions.Compiled);
+        private static readonly Regex PlaylistProgressRegex =
+            new Regex(@"\[download\]\s+Downloading item\s+(\d+)\s+of\s+(\d+)", RegexOptions.Compiled);
+        private static readonly Regex AlreadyDownloadedRegex =
+            new Regex(@"has already been downloaded", RegexOptions.Compiled);
+        private static readonly Regex ErrorRegex =
+            new Regex(@"ERROR:\s+(.+)$", RegexOptions.Compiled);
+
+        private SessionStats? _currentSession;
+        private DownloadItemStats? _currentItem;
 
         public MainWindow()
         {
@@ -56,6 +121,12 @@ namespace Kleptos
                 await DownloadMultiAsync();
                 return;
             }
+
+            // Initialize stats tracking
+            _currentSession = new SessionStats { TotalItems = 1 };
+            _currentItem = new DownloadItemStats { StartTime = DateTime.Now, Url = txtURL.Text ?? string.Empty };
+            _currentSession.Items.Add(_currentItem);
+            ResetShowInfoPanel();
 
             // ---- Single URL mode (your existing logic, slightly cleaned) ----
             if (!TryGetValidUrl(txtURL.Text, out var url, out var error))
@@ -125,6 +196,10 @@ namespace Kleptos
         {
             txtOutput.Text = string.Empty;
 
+            // Initialize session stats
+            _currentSession = new SessionStats();
+            ResetShowInfoPanel();
+
             var raw = txtMultiUrls.Text ?? string.Empty;
             var lines = raw
                 .Split(new[] { "\r\n", "\n", "\r" }, StringSplitOptions.None)
@@ -172,11 +247,18 @@ namespace Kleptos
                 return;
             }
 
+            _currentSession.TotalItems = entries.Count;
+
             // Sequential download (one after another)
             int i = 0;
             foreach (var (url, baseName) in entries)
             {
                 i++;
+
+                // Create per-item stats
+                _currentItem = new DownloadItemStats { Url = url, FileName = baseName, StartTime = DateTime.Now };
+                _currentSession.Items.Add(_currentItem);
+                UpdateCurrentStatus($"Downloading {i} of {entries.Count}: {baseName}");
 
                 // Build -o output template:
                 // - if user chose "default": keep %(ext)s
@@ -198,6 +280,9 @@ namespace Kleptos
 
                 await RunCMD(command);
             }
+
+            // Final stats update
+            UpdateStatsPanel();
         }
 
         private string GetSelectedExtension()
@@ -361,6 +446,7 @@ namespace Kleptos
                         {
                             txtOutput.Text += args.Data + "\n";
                             scrollViewer.ScrollToEnd();
+                            ParseOutputLine(args.Data);
                         });
                     }
                 };
@@ -374,6 +460,7 @@ namespace Kleptos
                         {
                             txtOutput.Text += args.Data + "\n";
                             scrollViewer.ScrollToEnd();
+                            ParseOutputLine(args.Data);
                         });
                     }
                 };
@@ -403,20 +490,50 @@ namespace Kleptos
                     line.Contains("unable to download") ||
                     line.Contains("not found"));
 
-                // Display the result
+                // Finalize current item stats
                 Dispatcher.Invoke(() =>
                 {
+                    if (_currentItem != null)
+                    {
+                        _currentItem.EndTime = DateTime.Now;
+                        _currentItem.Duration = _currentItem.EndTime - _currentItem.StartTime;
+
+                        if (isAlreadyDownloaded)
+                        {
+                            _currentItem.AlreadyDownloaded = true;
+                            _currentItem.Succeeded = true;
+                        }
+                        else if (isSuccess)
+                        {
+                            _currentItem.Succeeded = true;
+                        }
+                        else if (isFailure)
+                        {
+                            _currentItem.Succeeded = false;
+                        }
+                    }
+
+                    if (_currentSession != null)
+                    {
+                        _currentSession.CompletedItems++;
+                        UpdateProgressBar(100);
+                        UpdateStatsPanel();
+                    }
+
                     if (isAlreadyDownloaded)
                     {
                         txtOutput.Text += "\n✅ File was already downloaded!\n";
+                        UpdateCurrentStatus("Already downloaded");
                     }
                     else if (isSuccess)
                     {
                         txtOutput.Text += "\n🎉 Download successful!\n";
+                        UpdateCurrentStatus("Download complete!");
                     }
                     else if (isFailure)
                     {
                         txtOutput.Text += "\n❌ Download failed!\n";
+                        UpdateCurrentStatus("Download failed");
                     }
 
                     scrollViewer.ScrollToEnd();
@@ -446,6 +563,306 @@ namespace Kleptos
                         }
                     });
                 }
+            }
+        }
+
+        private void ParseOutputLine(string line)
+        {
+            if (string.IsNullOrEmpty(line) || _currentItem == null) return;
+
+            Match m;
+
+            // Destination
+            m = DestinationRegex.Match(line);
+            if (m.Success)
+            {
+                _currentItem.FileName = Path.GetFileName(m.Groups[1].Value);
+                UpdateCurrentStatus($"Downloading: {_currentItem.FileName}");
+                return;
+            }
+
+            // Progress (not 100%)
+            m = ProgressRegex.Match(line);
+            if (m.Success)
+            {
+                if (double.TryParse(m.Groups[1].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double percent))
+                {
+                    UpdateProgressBar(percent);
+                }
+                if (double.TryParse(m.Groups[2].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double size))
+                {
+                    _currentItem.FileSizeMB = ConvertToMB(size, m.Groups[3].Value);
+                }
+                if (double.TryParse(m.Groups[4].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double speed))
+                {
+                    _currentItem.SpeedMBps = ConvertToMB(speed, m.Groups[5].Value);
+                }
+                return;
+            }
+
+            // 100% complete
+            m = ProgressCompleteRegex.Match(line);
+            if (m.Success)
+            {
+                if (double.TryParse(m.Groups[1].Value, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double size))
+                {
+                    _currentItem.FileSizeMB = ConvertToMB(size, m.Groups[2].Value);
+                }
+                UpdateProgressBar(100);
+                return;
+            }
+
+            // Merger
+            m = MergerRegex.Match(line);
+            if (m.Success)
+            {
+                _currentItem.FileName = Path.GetFileName(m.Groups[1].Value);
+                UpdateCurrentStatus($"Merging: {_currentItem.FileName}");
+                return;
+            }
+
+            // Playlist item progress
+            m = PlaylistProgressRegex.Match(line);
+            if (m.Success)
+            {
+                if (int.TryParse(m.Groups[1].Value, out int current) && int.TryParse(m.Groups[2].Value, out int total))
+                {
+                    if (_currentSession != null)
+                    {
+                        // Finalize previous item if it exists and is different
+                        if (_currentItem != null && _currentItem.StartTime != default && _currentItem.EndTime == default)
+                        {
+                            _currentItem.EndTime = DateTime.Now;
+                            _currentItem.Duration = _currentItem.EndTime - _currentItem.StartTime;
+                        }
+
+                        _currentSession.TotalItems = total;
+                        _currentSession.CompletedItems = current - 1;
+
+                        // Create new item for this playlist entry
+                        _currentItem = new DownloadItemStats { StartTime = DateTime.Now };
+                        _currentSession.Items.Add(_currentItem);
+                    }
+                    UpdateCurrentStatus($"Downloading item {current} of {total}");
+                }
+                return;
+            }
+
+            // Already downloaded
+            if (AlreadyDownloadedRegex.IsMatch(line))
+            {
+                if (_currentItem != null)
+                {
+                    _currentItem.AlreadyDownloaded = true;
+                    _currentItem.Succeeded = true;
+                }
+                UpdateCurrentStatus("Already downloaded");
+                return;
+            }
+
+            // Error
+            m = ErrorRegex.Match(line);
+            if (m.Success)
+            {
+                if (_currentItem != null)
+                {
+                    _currentItem.ErrorMessage = m.Groups[1].Value;
+                    _currentItem.Succeeded = false;
+                }
+                UpdateCurrentStatus($"Error: {m.Groups[1].Value}");
+                return;
+            }
+        }
+
+        private static double ConvertToMB(double value, string unit)
+        {
+            var u = unit.Trim().TrimEnd('/','s').ToLowerInvariant();
+            return u switch
+            {
+                "kib" => value / 1024.0,
+                "mib" => value,
+                "gib" => value * 1024.0,
+                "kb" => value / 1000.0,
+                "mb" => value,
+                "gb" => value * 1000.0,
+                _ => value
+            };
+        }
+
+        private void UpdateProgressBar(double currentPercent)
+        {
+            double overallPercent = currentPercent;
+            if (_currentSession != null && _currentSession.TotalItems > 1)
+            {
+                overallPercent = (_currentSession.CompletedItems * 100.0 + currentPercent) / _currentSession.TotalItems;
+            }
+            overallPercent = Math.Max(0, Math.Min(100, overallPercent));
+
+            txtProgressPercent.Text = $"{overallPercent:F0}%";
+
+            // Set progress bar width relative to parent
+            var parent = progressBarFill.Parent as System.Windows.Controls.Border;
+            if (parent != null && parent.ActualWidth > 0)
+            {
+                progressBarFill.Width = parent.ActualWidth * (overallPercent / 100.0);
+            }
+        }
+
+        private void UpdateCurrentStatus(string text)
+        {
+            txtCurrentStatus.Text = text;
+        }
+
+        private void ResetShowInfoPanel()
+        {
+            txtProgressPercent.Text = "0%";
+            progressBarFill.Width = 0;
+            txtCurrentStatus.Text = "Starting download...";
+            pnlStats.Children.Clear();
+        }
+
+        private void UpdateStatsPanel()
+        {
+            if (_currentSession == null) return;
+
+            pnlStats.Children.Clear();
+
+            // Summary section
+            AddStatHeader("Summary");
+            AddStatRow("Total Files", _currentSession.CompletedItems.ToString());
+            if (_currentSession.SuccessCount > 0)
+                AddStatRow("Succeeded", _currentSession.SuccessCount.ToString(), "#4ecdc4");
+            if (_currentSession.FailCount > 0)
+                AddStatRow("Failed", _currentSession.FailCount.ToString(), "#ff3c3c");
+            if (_currentSession.AlreadyDownloadedCount > 0)
+                AddStatRow("Already Downloaded", _currentSession.AlreadyDownloadedCount.ToString(), "#888888");
+
+            // Size section
+            if (_currentSession.TotalSizeMB > 0)
+            {
+                AddStatSeparator();
+                AddStatHeader("Size");
+                AddStatRow("Total Size", FormatSize(_currentSession.TotalSizeMB));
+                if (_currentSession.LargestFile != null && _currentSession.Items.Count(i => i.FileSizeMB > 0) > 1)
+                {
+                    AddStatRow("Largest", $"{FormatSize(_currentSession.LargestFile.FileSizeMB)} — {_currentSession.LargestFile.FileName}");
+                    if (_currentSession.SmallestFile != null)
+                        AddStatRow("Smallest", $"{FormatSize(_currentSession.SmallestFile.FileSizeMB)} — {_currentSession.SmallestFile.FileName}");
+                }
+            }
+
+            // Performance section
+            AddStatSeparator();
+            AddStatHeader("Performance");
+            if (_currentSession.AverageSpeedMBps > 0)
+                AddStatRow("Avg Speed", $"{_currentSession.AverageSpeedMBps:F2} MB/s");
+            AddStatRow("Total Time", FormatDuration(_currentSession.TotalDuration));
+            if (_currentSession.Items.Count > 1 && _currentSession.AverageItemDuration > TimeSpan.Zero)
+                AddStatRow("Avg Per File", FormatDuration(_currentSession.AverageItemDuration));
+
+            // Files section (multi/playlist only)
+            if (_currentSession.Items.Count > 1)
+            {
+                AddStatSeparator();
+                AddStatHeader("Files");
+                foreach (var item in _currentSession.Items)
+                {
+                    string status;
+                    string color;
+                    if (item.AlreadyDownloaded) { status = "[SKIP]"; color = "#888888"; }
+                    else if (item.Succeeded) { status = "[OK]"; color = "#4ecdc4"; }
+                    else { status = "[FAIL]"; color = "#ff3c3c"; }
+
+                    var name = string.IsNullOrEmpty(item.FileName) ? "Unknown" : item.FileName;
+                    AddStatRow(status, name, color);
+                }
+            }
+        }
+
+        private void AddStatHeader(string text)
+        {
+            pnlStats.Children.Add(new TextBlock
+            {
+                Text = text,
+                Foreground = (System.Windows.Media.SolidColorBrush)FindResource("TextPrimary"),
+                FontFamily = (System.Windows.Media.FontFamily)FindResource("JetBrainsReg"),
+                FontSize = 12,
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 4, 0, 4)
+            });
+        }
+
+        private void AddStatRow(string label, string value, string? color = null)
+        {
+            var grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Auto) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            var lblBlock = new TextBlock
+            {
+                Text = label,
+                Foreground = color != null
+                    ? new System.Windows.Media.SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(color))
+                    : (System.Windows.Media.SolidColorBrush)FindResource("TextSecondary"),
+                FontFamily = (System.Windows.Media.FontFamily)FindResource("JetBrainsReg"),
+                FontSize = 11,
+                Margin = new Thickness(0, 1, 12, 1)
+            };
+            Grid.SetColumn(lblBlock, 0);
+
+            var valBlock = new TextBlock
+            {
+                Text = value,
+                Foreground = (System.Windows.Media.SolidColorBrush)FindResource("TextPrimary"),
+                FontFamily = (System.Windows.Media.FontFamily)FindResource("JetBrainsReg"),
+                FontSize = 11,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Margin = new Thickness(0, 1, 0, 1)
+            };
+            Grid.SetColumn(valBlock, 1);
+
+            grid.Children.Add(lblBlock);
+            grid.Children.Add(valBlock);
+            pnlStats.Children.Add(grid);
+        }
+
+        private void AddStatSeparator()
+        {
+            pnlStats.Children.Add(new System.Windows.Controls.Border
+            {
+                Height = 1,
+                Background = (System.Windows.Media.SolidColorBrush)FindResource("BorderSubtle"),
+                Margin = new Thickness(0, 6, 0, 6)
+            });
+        }
+
+        private static string FormatSize(double mb)
+        {
+            if (mb >= 1024) return $"{mb / 1024.0:F2} GB";
+            if (mb >= 1) return $"{mb:F2} MB";
+            return $"{mb * 1024.0:F0} KB";
+        }
+
+        private static string FormatDuration(TimeSpan ts)
+        {
+            if (ts.TotalHours >= 1) return $"{ts.Hours}h {ts.Minutes}m {ts.Seconds}s";
+            if (ts.TotalMinutes >= 1) return $"{ts.Minutes}m {ts.Seconds}s";
+            return $"{ts.TotalSeconds:F1}s";
+        }
+
+        private void OutputToggle_Checked(object sender, RoutedEventArgs e)
+        {
+            if (pnlShowInfo == null || pnlConsole == null) return;
+
+            if (rbShowInfo.IsChecked == true)
+            {
+                pnlShowInfo.Visibility = Visibility.Visible;
+                pnlConsole.Visibility = Visibility.Collapsed;
+            }
+            else
+            {
+                pnlShowInfo.Visibility = Visibility.Collapsed;
+                pnlConsole.Visibility = Visibility.Visible;
             }
         }
 
