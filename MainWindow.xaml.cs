@@ -901,16 +901,13 @@ namespace Kleptos
         {
             var tb = new TextBox
             {
+                Style = (Style)FindResource("SegmentTimeTextBox"),
                 Height = 26,
                 FontSize = 11,
                 FontFamily = (FontFamily)FindResource("JetBrainsReg"),
                 Foreground = (SolidColorBrush)FindResource("TextPrimary"),
-                Background = (SolidColorBrush)FindResource("BackgroundInput"),
                 CaretBrush = (SolidColorBrush)FindResource("TextSecondary"),
                 SelectionBrush = (SolidColorBrush)FindResource("AccentColor"),
-                BorderBrush = (SolidColorBrush)FindResource("BorderSubtle"),
-                BorderThickness = new Thickness(1),
-                Padding = new Thickness(6, 2, 6, 2),
                 MaxLength = 8,
                 HorizontalContentAlignment = HorizontalAlignment.Center,
                 VerticalContentAlignment = VerticalAlignment.Center
@@ -1054,6 +1051,7 @@ namespace Kleptos
                         bitmap.EndInit();
                         bitmap.Freeze();
                         imgThumbnail.Source = bitmap;
+                        bdrThumbnail.Visibility = Visibility.Visible;
                     }
                     catch { }
                 });
@@ -1083,6 +1081,7 @@ namespace Kleptos
                                 bitmap.EndInit();
                                 bitmap.Freeze();
                                 imgThumbnail.Source = bitmap;
+                                bdrThumbnail.Visibility = Visibility.Visible;
                             }
                             catch { }
                         });

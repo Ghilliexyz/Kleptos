@@ -152,6 +152,28 @@
             </Setter>
         </Style>
 
+        <!-- Segment Time Input TextBox -->
+        <Style TargetType="{x:Type TextBox}" x:Key="SegmentTimeTextBox">
+            <Setter Property="Background" Value="{StaticResource BackgroundInput}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderSubtle}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Border" CornerRadius="6" Background="{TemplateBinding Background}"
+                                BorderThickness="{TemplateBinding BorderThickness}" BorderBrush="{TemplateBinding BorderBrush}">
+                            <ScrollViewer Margin="6,2" x:Name="PART_ContentHost" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsFocused" Value="True">
+                                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource AccentColor}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Modern File Output TextBox -->
         <Style TargetType="{x:Type TextBox}" x:Key="FileOutputTextBox">
             <Setter Property="Template">
@@ -691,12 +713,12 @@
                         </Grid>
 
                         <!-- Segments Panel -->
-                        <Border x:Name="pnlSegmentsTab" Grid.Row="1" CornerRadius="12" Background="{StaticResource BackgroundCard}" Padding="16" Visibility="Collapsed">
+                        <Border x:Name="pnlSegmentsTab" Grid.Row="1" CornerRadius="12" Background="{StaticResource BackgroundCard}" Padding="12" Visibility="Collapsed">
                             <ScrollViewer VerticalScrollBarVisibility="Auto">
                                 <StackPanel>
                                     <!-- Thumbnail Preview -->
-                                    <Border CornerRadius="8" Background="{StaticResource BackgroundInput}" Margin="0,0,0,10"
-                                            MaxHeight="160" ClipToBounds="True">
+                                    <Border x:Name="bdrThumbnail" CornerRadius="8" Background="{StaticResource BackgroundInput}" Margin="0,0,0,10"
+                                            MaxHeight="160" ClipToBounds="True" Visibility="Collapsed">
                                         <Image x:Name="imgThumbnail" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
                                     </Border>
 
