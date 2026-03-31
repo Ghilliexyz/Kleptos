@@ -546,7 +546,7 @@
                     <!-- Version Text -->
                     <TextBlock Grid.Column="0" x:Name="txtKleptosVersion" FontFamily="{StaticResource JetBrainsReg}"
                                VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20,0,0,0"
-                               Foreground="{StaticResource TextSecondary}" FontSize="11" Text="v1.0.9"/>
+                               Foreground="{StaticResource TextSecondary}" FontSize="11" Text="v1.1.0"/>
 
                     <!-- Title -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -635,6 +635,8 @@
                                              GroupName="OutputToggle" IsChecked="True" Checked="OutputToggle_Checked"/>
                                 <RadioButton x:Name="rbConsole" Content="Console" Style="{StaticResource PillToggleButton}"
                                              GroupName="OutputToggle" Margin="4,0,0,0" Checked="OutputToggle_Checked"/>
+                                <RadioButton x:Name="rbSegments" Content="Segments" Style="{StaticResource PillToggleButton}"
+                                             GroupName="OutputToggle" Margin="4,0,0,0" Checked="OutputToggle_Checked"/>
                             </StackPanel>
                         </Border>
 
@@ -676,10 +678,10 @@
 
                         <!-- Console Panel (existing, now toggled) -->
                         <Grid x:Name="pnlConsole" Grid.Row="1" Visibility="Collapsed">
-                            <ScrollViewer Name="scrollViewer" Style="{StaticResource ConsoleOutputScrollViewer}" FontSize="11" VerticalScrollBarVisibility="Auto">
-                                <TextBox Name="txtOutput" Style="{StaticResource ConsoleOutputTextBox}" FontFamily="{StaticResource JetBrainsReg}"
+                            <ScrollViewer x:Name="scrollViewer" Style="{StaticResource ConsoleOutputScrollViewer}" FontSize="11" VerticalScrollBarVisibility="Auto">
+                                <TextBox x:Name="txtOutput" Style="{StaticResource ConsoleOutputTextBox}" FontFamily="{StaticResource JetBrainsReg}"
                                          SelectionBrush="{StaticResource AccentColor}" Foreground="{StaticResource AccentColor}"
-                                         Text="{Binding Text, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"/>
+                                         IsReadOnly="True" TextWrapping="Wrap"/>
                             </ScrollViewer>
                             <Button Click="CopyLogs_Click" Style="{StaticResource FilePathButton}" FontFamily="{StaticResource JetBrainsReg}"
                                     Foreground="{StaticResource TextPrimary}" Width="36" Height="36" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8">
@@ -687,6 +689,59 @@
                                       Stroke="{StaticResource TextSecondary}" StrokeThickness="1.5" Fill="Transparent" Width="14" Height="14"/>
                             </Button>
                         </Grid>
+
+                        <!-- Segments Panel -->
+                        <Border x:Name="pnlSegmentsTab" Grid.Row="1" CornerRadius="12" Background="{StaticResource BackgroundCard}" Padding="16" Visibility="Collapsed">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel>
+                                    <!-- Thumbnail Preview -->
+                                    <Border CornerRadius="8" Background="{StaticResource BackgroundInput}" Margin="0,0,0,10"
+                                            MaxHeight="160" ClipToBounds="True">
+                                        <Image x:Name="imgThumbnail" Stretch="Uniform" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                    </Border>
+
+                                    <!-- Video Title -->
+                                    <TextBlock x:Name="txtVideoTitle" Text="" Foreground="{StaticResource TextPrimary}"
+                                               FontFamily="{StaticResource JetBrainsReg}" FontSize="12" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis" Margin="0,0,0,8" Visibility="Collapsed"/>
+
+                                    <!-- Duration Info Row -->
+                                    <Grid Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock x:Name="txtSegmentDuration" Text="Duration: --:--:--"
+                                                   Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}"
+                                                   FontSize="11" VerticalAlignment="Center"/>
+                                        <Button x:Name="btnFetchDuration" Grid.Column="1" Click="btnFetchDuration_Click"
+                                                Style="{StaticResource FilePathButton}" FontFamily="{StaticResource JetBrainsReg}"
+                                                Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="10,4" Height="28">Fetch Info</Button>
+                                    </Grid>
+
+                                    <!-- Timeline Bar with Seek Preview -->
+                                    <Grid x:Name="pnlTimeline" Height="16" Margin="0,0,0,10" Visibility="Collapsed" Cursor="Hand"
+                                          MouseMove="Timeline_MouseMove" MouseLeave="Timeline_MouseLeave"
+                                          MouseLeftButtonDown="Timeline_MouseLeftButtonDown" MouseRightButtonDown="Timeline_MouseRightButtonDown"
+                                          Background="Transparent">
+                                        <Border CornerRadius="4" Background="{StaticResource BackgroundInput}"/>
+                                        <Canvas x:Name="cnvTimeline" ClipToBounds="True"/>
+                                        <Popup x:Name="popSeekPreview" Placement="Relative" PlacementTarget="{Binding ElementName=pnlTimeline}"
+                                               AllowsTransparency="True" IsHitTestVisible="False" VerticalOffset="-30" HorizontalOffset="0">
+                                            <Border CornerRadius="4" Background="{StaticResource BackgroundCard}" BorderBrush="{StaticResource BorderSubtle}"
+                                                    BorderThickness="1" Padding="6,3">
+                                                <TextBlock x:Name="txtSeekTimestamp" Text="0:00" Foreground="{StaticResource TextPrimary}"
+                                                           FontFamily="{StaticResource JetBrainsReg}" FontSize="11"/>
+                                            </Border>
+                                        </Popup>
+                                    </Grid>
+
+                                    <!-- Segment Rows -->
+                                    <StackPanel x:Name="pnlSegmentRows" Margin="0,0,0,6"/>
+
+                                </StackPanel>
+                            </ScrollViewer>
+                        </Border>
                     </Grid>
                 </Grid>
 

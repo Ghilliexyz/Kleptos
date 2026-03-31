@@ -4,9 +4,11 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Velopack;
 using Velopack.Locators;
 using Velopack.Sources;
@@ -59,6 +61,12 @@ namespace Kleptos
         public DownloadItemStats? SmallestFile => Items.Where(i => i.FileSizeMB > 0).OrderBy(i => i.FileSizeMB).FirstOrDefault();
     }
 
+    public class SegmentInfo
+    {
+        public string StartTime { get; set; } = string.Empty;
+        public string EndTime { get; set; } = string.Empty;
+    }
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -67,7 +75,7 @@ namespace Kleptos
         private readonly string ytDlpPath = "yt-dlp.exe";
         private readonly string gitHubReleaseUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest";
 
-        private string cookiesTxtFile = String.Empty;
+        private string cookiesTxtFile = string.Empty;
 
         private static bool hasUpdate = false;
 
@@ -92,6 +100,9 @@ namespace Kleptos
 
         private SessionStats? _currentSession;
         private DownloadItemStats? _currentItem;
+
+        private double _videoDurationSeconds = 0;
+        private string _videoTitle = string.Empty;
 
         public MainWindow()
         {
@@ -128,23 +139,10 @@ namespace Kleptos
             _currentSession.Items.Add(_currentItem);
             ResetShowInfoPanel();
 
-            // ---- Single URL mode (your existing logic, slightly cleaned) ----
+            // ---- Single URL mode ----
             if (!TryGetValidUrl(txtURL.Text, out var url, out var error))
             {
                 txtOutput.Text = error;
-                return;
-            }
-
-            // Validate URL
-            if (string.IsNullOrEmpty(txtURL.Text) || txtURL.Text.Length < 8)
-            {
-                txtOutput.Text = "No link Found";
-                return;
-            }
-
-            if (!(txtURL.Text.StartsWith("https://") || txtURL.Text.StartsWith("http://")))
-            {
-                txtOutput.Text = "Invalid Link";
                 return;
             }
 
@@ -186,7 +184,20 @@ namespace Kleptos
                 command = $"yt-dlp {GetFormat(fileExtension)}{GetCookiesArgument()} -o {GetVideoName(fileExtension)} --no-mtime \"{txtURL.Text}\"";
             }
 
-            // Construct command string
+            // Append segment download args if Segments tab is active
+            if (rbSegments.IsChecked == true && cbMultiDownload.IsChecked != true)
+            {
+                var segments = ParseSegments(out var segError);
+                if (segments.Count > 0)
+                {
+                    command += BuildSegmentArgs(segments);
+                }
+                else if (!string.IsNullOrEmpty(segError))
+                {
+                    txtOutput.Text = segError;
+                    return;
+                }
+            }
 
             // Run the command
             await RunCMD(command);
@@ -442,7 +453,7 @@ namespace Kleptos
                     if (!string.IsNullOrEmpty(args.Data))
                     {
                         outputQueue.Enqueue(args.Data);
-                        Dispatcher.Invoke(() =>
+                        Dispatcher.BeginInvoke(() =>
                         {
                             txtOutput.Text += args.Data + "\n";
                             scrollViewer.ScrollToEnd();
@@ -456,7 +467,7 @@ namespace Kleptos
                     if (!string.IsNullOrEmpty(args.Data))
                     {
                         outputQueue.Enqueue(args.Data);
-                        Dispatcher.Invoke(() =>
+                        Dispatcher.BeginInvoke(() =>
                         {
                             txtOutput.Text += args.Data + "\n";
                             scrollViewer.ScrollToEnd();
@@ -549,7 +560,7 @@ namespace Kleptos
 
                 if (authRequired)
                 {
-                    await Dispatcher.Invoke(async () =>
+                    Dispatcher.Invoke(() =>
                     {
                         MessageBoxResult result = MessageBox.Show("Please download any extention that allows you to download cookies, I recommend `Get cookies.txt LOCALLY`. \n\nOnce downloaded press `cookies` and locate the file you extracted from chrome. \nPressing `Ok` will open the extention in your browser.",
                             "Authentication Required",
@@ -850,19 +861,509 @@ namespace Kleptos
             return $"{ts.TotalSeconds:F1}s";
         }
 
+        // ── Segment Download ──
+
+        private void AddSegmentRow()
+        {
+            if (pnlSegmentRows.Children.Count > 0) return; // only one segment allowed
+
+            var row = new Grid { Margin = new Thickness(0, 0, 0, 4) };
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(20) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            var startBox = CreateTimeTextBox();
+            Grid.SetColumn(startBox, 0);
+
+            var sep = new TextBlock
+            {
+                Text = "\u2014",
+                Foreground = (SolidColorBrush)FindResource("TextSecondary"),
+                FontFamily = (FontFamily)FindResource("JetBrainsReg"),
+                FontSize = 11,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+            Grid.SetColumn(sep, 1);
+
+            var endBox = CreateTimeTextBox();
+            Grid.SetColumn(endBox, 2);
+
+            row.Tag = new[] { startBox, endBox };
+            row.Children.Add(startBox);
+            row.Children.Add(sep);
+            row.Children.Add(endBox);
+
+            pnlSegmentRows.Children.Add(row);
+        }
+
+        private TextBox CreateTimeTextBox()
+        {
+            var tb = new TextBox
+            {
+                Height = 26,
+                FontSize = 11,
+                FontFamily = (FontFamily)FindResource("JetBrainsReg"),
+                Foreground = (SolidColorBrush)FindResource("TextPrimary"),
+                Background = (SolidColorBrush)FindResource("BackgroundInput"),
+                CaretBrush = (SolidColorBrush)FindResource("TextSecondary"),
+                SelectionBrush = (SolidColorBrush)FindResource("AccentColor"),
+                BorderBrush = (SolidColorBrush)FindResource("BorderSubtle"),
+                BorderThickness = new Thickness(1),
+                Padding = new Thickness(6, 2, 6, 2),
+                MaxLength = 8,
+                HorizontalContentAlignment = HorizontalAlignment.Center,
+                VerticalContentAlignment = VerticalAlignment.Center
+            };
+            tb.TextChanged += SegmentTime_TextChanged;
+            return tb;
+        }
+
+
+        private void SegmentTime_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            var tb = (TextBox)sender;
+            double seconds = ParseTimeToSeconds(tb.Text);
+            tb.BorderBrush = (string.IsNullOrWhiteSpace(tb.Text) || seconds >= 0)
+                ? (SolidColorBrush)FindResource("BorderSubtle")
+                : (SolidColorBrush)FindResource("AccentColor");
+
+            UpdateTimelineVisualization();
+        }
+
+        // ── Segment Download: Metadata Fetch ──
+
+        private async void btnFetchDuration_Click(object sender, RoutedEventArgs e)
+        {
+            var url = txtURL.Text?.Trim();
+            if (string.IsNullOrWhiteSpace(url) || url.Length < 8)
+            {
+                txtSegmentDuration.Text = "Duration: enter a URL first";
+                return;
+            }
+
+            btnFetchDuration.IsEnabled = false;
+            btnFetchDuration.Content = "Fetching...";
+            txtSegmentDuration.Text = "Duration: fetching...";
+
+            try
+            {
+                // Fetch duration, title, and thumbnail URL in one call
+                var args = $"--print duration --print title --print thumbnail --no-download{GetCookiesArgument()} \"{url}\"";
+                var metaOutput = await RunYtDlpPrint(args);
+                var lines = metaOutput.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+                if (lines.Length >= 1 && double.TryParse(lines[0], System.Globalization.NumberStyles.Float,
+                    System.Globalization.CultureInfo.InvariantCulture, out double duration) && duration > 0)
+                {
+                    _videoDurationSeconds = duration;
+                    _videoTitle = lines.Length >= 2 ? lines[1] : string.Empty;
+                    txtSegmentDuration.Text = $"Duration: {FormatDuration(duration)}";
+                    pnlTimeline.Visibility = Visibility.Visible;
+                    UpdateTimelineVisualization();
+
+                    // Show video title
+                    if (!string.IsNullOrWhiteSpace(_videoTitle))
+                    {
+                        txtVideoTitle.Text = _videoTitle;
+                        txtVideoTitle.Visibility = Visibility.Visible;
+                    }
+
+                    // Fetch thumbnail
+                    if (lines.Length >= 3 && !string.IsNullOrWhiteSpace(lines[2]))
+                    {
+                        await LoadThumbnailAsync(lines[2]);
+                    }
+
+                }
+                else
+                {
+                    _videoDurationSeconds = 0;
+                    txtSegmentDuration.Text = "Duration: unknown";
+                    pnlTimeline.Visibility = Visibility.Collapsed;
+                }
+            }
+            catch
+            {
+                txtSegmentDuration.Text = "Duration: error";
+                pnlTimeline.Visibility = Visibility.Collapsed;
+            }
+            finally
+            {
+                btnFetchDuration.IsEnabled = true;
+                btnFetchDuration.Content = "Fetch Info";
+            }
+        }
+
+        private async Task<string> RunYtDlpPrint(string args)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = ytDlpPath,
+                Arguments = args,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using var process = new Process { StartInfo = psi };
+            var output = new StringBuilder();
+
+            process.OutputDataReceived += (s, a) =>
+            {
+                if (!string.IsNullOrEmpty(a.Data))
+                    output.AppendLine(a.Data);
+            };
+
+            process.Start();
+            process.BeginOutputReadLine();
+
+            using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(20));
+            try
+            {
+                await process.WaitForExitAsync(cts.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                try { process.Kill(); } catch { }
+            }
+
+            return output.ToString();
+        }
+
+        private async Task LoadThumbnailAsync(string thumbnailUrl)
+        {
+            try
+            {
+                using var client = new HttpClient();
+                client.Timeout = TimeSpan.FromSeconds(10);
+                client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0");
+                var bytes = await client.GetByteArrayAsync(thumbnailUrl);
+
+                if (bytes.Length == 0) return;
+
+                Dispatcher.Invoke(() =>
+                {
+                    try
+                    {
+                        var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.StreamSource = new MemoryStream(bytes);
+                        bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        bitmap.Freeze();
+                        imgThumbnail.Source = bitmap;
+                    }
+                    catch { }
+                });
+            }
+            catch
+            {
+                // Fallback: use yt-dlp to download thumbnail to temp file
+                try
+                {
+                    var tempDir = Path.Combine(Path.GetTempPath(), "kleptos_thumb");
+                    Directory.CreateDirectory(tempDir);
+                    var args = $"--skip-download --write-thumbnail --convert-thumbnails png -o \"{tempDir}\\thumb\" --no-mtime \"{txtURL.Text?.Trim()}\"";
+                    await RunYtDlpPrint(args);
+
+                    var thumbFile = Directory.GetFiles(tempDir, "thumb*.png").FirstOrDefault();
+                    if (thumbFile != null && File.Exists(thumbFile))
+                    {
+                        var bytes = await File.ReadAllBytesAsync(thumbFile);
+                        Dispatcher.Invoke(() =>
+                        {
+                            try
+                            {
+                                var bitmap = new System.Windows.Media.Imaging.BitmapImage();
+                                bitmap.BeginInit();
+                                bitmap.StreamSource = new MemoryStream(bytes);
+                                bitmap.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                                bitmap.EndInit();
+                                bitmap.Freeze();
+                                imgThumbnail.Source = bitmap;
+                            }
+                            catch { }
+                        });
+                        try { Directory.Delete(tempDir, true); } catch { }
+                    }
+                }
+                catch { }
+            }
+        }
+
+        private static string FormatDuration(double totalSeconds)
+        {
+            var ts = TimeSpan.FromSeconds(totalSeconds);
+            return ts.TotalHours >= 1
+                ? $"{(int)ts.TotalHours}:{ts.Minutes:D2}:{ts.Seconds:D2}"
+                : $"{ts.Minutes}:{ts.Seconds:D2}";
+        }
+
+        // ── Segment Download: Timeline Visualization ──
+
+        private void UpdateTimelineVisualization()
+        {
+            if (cnvTimeline == null) return;
+            cnvTimeline.Children.Clear();
+
+            if (_videoDurationSeconds <= 0) return;
+
+            double timelineWidth = pnlTimeline.ActualWidth;
+            double timelineHeight = pnlTimeline.ActualHeight;
+            if (timelineWidth <= 0) timelineWidth = 200;
+            if (timelineHeight <= 0) timelineHeight = 16;
+
+            if (pnlSegmentRows.Children.Count == 0) return;
+
+            var row = (Grid)pnlSegmentRows.Children[0];
+            var boxes = (TextBox[])row.Tag;
+            double startSec = ParseTimeToSeconds(boxes[0].Text);
+            double endSec = ParseTimeToSeconds(boxes[1].Text);
+
+            // Draw range bar if both are valid
+            if (startSec >= 0 && endSec >= 0 && startSec < endSec)
+            {
+                double left = (startSec / _videoDurationSeconds) * timelineWidth;
+                double width = ((endSec - startSec) / _videoDurationSeconds) * timelineWidth;
+
+                var rect = new System.Windows.Shapes.Rectangle
+                {
+                    Width = Math.Max(2, width),
+                    Height = 8,
+                    RadiusX = 2,
+                    RadiusY = 2,
+                    Fill = new SolidColorBrush(Color.FromArgb(100, 255, 60, 60)),
+                };
+                Canvas.SetLeft(rect, Math.Max(0, left));
+                Canvas.SetTop(rect, (timelineHeight - 8) / 2);
+                cnvTimeline.Children.Add(rect);
+            }
+
+            // Green marker for start
+            if (startSec >= 0)
+            {
+                double x = (startSec / _videoDurationSeconds) * timelineWidth;
+                AddMarker(x, timelineHeight, Color.FromRgb(76, 175, 80)); // green
+            }
+
+            // Red marker for end
+            if (endSec >= 0)
+            {
+                double x = (endSec / _videoDurationSeconds) * timelineWidth;
+                AddMarker(x, timelineHeight, Color.FromRgb(255, 60, 60)); // red
+            }
+        }
+
+        private void AddMarker(double x, double timelineHeight, Color color)
+        {
+            // Vertical line
+            var line = new System.Windows.Shapes.Rectangle
+            {
+                Width = 2,
+                Height = timelineHeight,
+                Fill = new SolidColorBrush(color),
+            };
+            Canvas.SetLeft(line, Math.Max(0, x - 1));
+            Canvas.SetTop(line, 0);
+            cnvTimeline.Children.Add(line);
+
+            // Small triangle arrow pointing down
+            var triangle = new System.Windows.Shapes.Polygon
+            {
+                Points = new PointCollection
+                {
+                    new Point(0, 0),
+                    new Point(8, 0),
+                    new Point(4, 5),
+                },
+                Fill = new SolidColorBrush(color),
+            };
+            Canvas.SetLeft(triangle, Math.Max(0, x - 4));
+            Canvas.SetTop(triangle, 0);
+            cnvTimeline.Children.Add(triangle);
+        }
+
+        // ── Segment Download: Seek Preview ──
+
+        private double GetTimelineSeconds(double mouseX)
+        {
+            double width = pnlTimeline.ActualWidth;
+            if (width <= 0) return 0;
+            double fraction = Math.Clamp(mouseX / width, 0, 1);
+            return fraction * _videoDurationSeconds;
+        }
+
+        private static string FormatTimeInput(double seconds)
+        {
+            var ts = TimeSpan.FromSeconds((int)seconds);
+            return ts.TotalHours >= 1
+                ? $"{(int)ts.TotalHours}:{ts.Minutes:D2}:{ts.Seconds:D2}"
+                : $"{ts.Minutes}:{ts.Seconds:D2}";
+        }
+
+        private void Timeline_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (_videoDurationSeconds <= 0) return;
+
+            double x = e.GetPosition(pnlTimeline).X;
+            double seconds = GetTimelineSeconds(x);
+
+            txtSeekTimestamp.Text = FormatTimeInput(seconds);
+            popSeekPreview.HorizontalOffset = x - 30;
+            if (!popSeekPreview.IsOpen)
+                popSeekPreview.IsOpen = true;
+        }
+
+        private void Timeline_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            popSeekPreview.IsOpen = false;
+        }
+
+        private void Timeline_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (_videoDurationSeconds <= 0) return;
+            double seconds = GetTimelineSeconds(e.GetPosition(pnlTimeline).X);
+            SetActiveSegmentTime(isStart: true, FormatTimeInput(seconds));
+        }
+
+        private void Timeline_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (_videoDurationSeconds <= 0) return;
+            double seconds = GetTimelineSeconds(e.GetPosition(pnlTimeline).X);
+            SetActiveSegmentTime(isStart: false, FormatTimeInput(seconds));
+            e.Handled = true; // prevent context menu
+        }
+
+        private void SetActiveSegmentTime(bool isStart, string timeText)
+        {
+            if (pnlSegmentRows.Children.Count == 0) AddSegmentRow();
+
+            var row = (Grid)pnlSegmentRows.Children[0];
+            var boxes = (TextBox[])row.Tag;
+
+            if (isStart)
+                boxes[0].Text = timeText;
+            else
+                boxes[1].Text = timeText;
+
+            UpdateTimelineVisualization();
+        }
+
+        // ── Segment Download: Parsing & Command Building ──
+
+        private static double ParseTimeToSeconds(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return -1;
+            input = input.Trim();
+
+            // Try HH:MM:SS or MM:SS
+            var parts = input.Split(':');
+            if (parts.Length == 3 &&
+                int.TryParse(parts[0], out int h) &&
+                int.TryParse(parts[1], out int m) &&
+                int.TryParse(parts[2], out int s))
+            {
+                return h * 3600 + m * 60 + s;
+            }
+            if (parts.Length == 2 &&
+                int.TryParse(parts[0], out int m2) &&
+                int.TryParse(parts[1], out int s2))
+            {
+                return m2 * 60 + s2;
+            }
+
+            // Try raw seconds
+            if (double.TryParse(input, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out double sec) && sec >= 0)
+            {
+                return sec;
+            }
+
+            return -1;
+        }
+
+        private List<SegmentInfo> ParseSegments(out string error)
+        {
+            error = string.Empty;
+            var segments = new List<SegmentInfo>();
+
+            for (int i = 0; i < pnlSegmentRows.Children.Count; i++)
+            {
+                var row = (Grid)pnlSegmentRows.Children[i];
+                var boxes = (TextBox[])row.Tag;
+                string startText = boxes[0].Text.Trim();
+                string endText = boxes[1].Text.Trim();
+
+                if (string.IsNullOrWhiteSpace(startText) && string.IsNullOrWhiteSpace(endText))
+                    continue;
+
+                if (string.IsNullOrWhiteSpace(startText) || string.IsNullOrWhiteSpace(endText))
+                {
+                    error = $"Segment #{i + 1}: both start and end times are required.";
+                    return new List<SegmentInfo>();
+                }
+
+                double startSec = ParseTimeToSeconds(startText);
+                double endSec = ParseTimeToSeconds(endText);
+
+                if (startSec < 0)
+                {
+                    error = $"Segment #{i + 1}: invalid start time \"{startText}\".";
+                    return new List<SegmentInfo>();
+                }
+                if (endSec < 0)
+                {
+                    error = $"Segment #{i + 1}: invalid end time \"{endText}\".";
+                    return new List<SegmentInfo>();
+                }
+                if (startSec >= endSec)
+                {
+                    error = $"Segment #{i + 1}: start time must be before end time.";
+                    return new List<SegmentInfo>();
+                }
+
+                segments.Add(new SegmentInfo { StartTime = startText, EndTime = endText });
+            }
+
+            if (segments.Count == 0)
+                error = "No valid segments defined. Add at least one segment with start and end times.";
+
+            return segments;
+        }
+
+        private string BuildSegmentArgs(List<SegmentInfo> segments)
+        {
+            var sb = new StringBuilder();
+            foreach (var seg in segments)
+            {
+                sb.Append($" --download-sections \"*{seg.StartTime}-{seg.EndTime}\"");
+            }
+            return sb.ToString();
+        }
+
         private void OutputToggle_Checked(object sender, RoutedEventArgs e)
         {
-            if (pnlShowInfo == null || pnlConsole == null) return;
+            if (pnlShowInfo == null || pnlConsole == null || pnlSegmentsTab == null) return;
+
+            pnlShowInfo.Visibility = Visibility.Collapsed;
+            pnlConsole.Visibility = Visibility.Collapsed;
+            pnlSegmentsTab.Visibility = Visibility.Collapsed;
 
             if (rbShowInfo.IsChecked == true)
             {
                 pnlShowInfo.Visibility = Visibility.Visible;
-                pnlConsole.Visibility = Visibility.Collapsed;
             }
-            else
+            else if (rbConsole.IsChecked == true)
             {
-                pnlShowInfo.Visibility = Visibility.Collapsed;
                 pnlConsole.Visibility = Visibility.Visible;
+            }
+            else if (rbSegments.IsChecked == true)
+            {
+                pnlSegmentsTab.Visibility = Visibility.Visible;
+                if (pnlSegmentRows.Children.Count == 0)
+                    AddSegmentRow();
             }
         }
 
@@ -1233,7 +1734,20 @@ namespace Kleptos
 
         private async void Update_Click(object sender, RoutedEventArgs e)
         {
-            await UpdateKleptos();
+            UpdateButton.IsEnabled = false;
+            var textBlock = (System.Windows.Controls.TextBlock)UpdateButton.Content;
+            textBlock.Text = "Downloading update...";
+
+            try
+            {
+                await Task.Run(async () => await UpdateKleptos());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Update failed: {ex.Message}", "Update Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                textBlock.Text = "Update Available";
+                UpdateButton.IsEnabled = true;
+            }
         }
 
         private void ManageUpdateButton()
