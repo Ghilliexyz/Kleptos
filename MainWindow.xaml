@@ -6,7 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Kleptos"
         mc:Ignorable="d"
-        Title="Kleptos" Height="600" Width="1000" MinHeight="600" MinWidth="1000" WindowStartupLocation="CenterScreen" WindowStyle="None"
+        Title="Kleptos" Height="600" Width="1000" MinHeight="480" MinWidth="760" WindowStartupLocation="CenterScreen" WindowStyle="None"
         Background="Transparent" AllowsTransparency="True" ResizeMode="CanResize">
     <WindowChrome.WindowChrome>
         <wc:WindowChrome CaptionHeight="0"
@@ -15,6 +15,8 @@
                      UseAeroCaptionButtons="False"/>
     </WindowChrome.WindowChrome>
     <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
         <!-- Color Definitions -->
         <SolidColorBrush x:Key="AccentColor" Color="#ff3c3c"/>
         <SolidColorBrush x:Key="AccentColorHover" Color="#ff5555"/>
@@ -300,7 +302,7 @@
         </Style>
 
         <!-- Update Button -->
-        <Style TargetType="{x:Type Button}" x:Key="UpdateButton">
+        <Style TargetType="{x:Type Button}" x:Key="UpdateButtonStyle">
             <Setter Property="Background" Value="#2d8a4e" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -568,7 +570,7 @@
                     <!-- Version Text -->
                     <TextBlock Grid.Column="0" x:Name="txtKleptosVersion" FontFamily="{StaticResource JetBrainsReg}"
                                VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20,0,0,0"
-                               Foreground="{StaticResource TextSecondary}" FontSize="11" Text="v1.1.0"/>
+                               Foreground="{StaticResource TextSecondary}" FontSize="11" Text="v1.1.1"/>
 
                     <!-- Title -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -577,7 +579,7 @@
 
                     <!-- Window Controls -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0">
-                        <Button Style="{StaticResource UpdateButton}" x:Name="UpdateButton" Height="28" Margin="0,0,8,0" Click="Update_Click">
+                        <Button Style="{StaticResource UpdateButtonStyle}" x:Name="UpdateButton" Height="28" Margin="0,0,8,0" Click="Update_Click">
                             <TextBlock Text="Update Available" Foreground="White" FontFamily="{StaticResource JetBrainsReg}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Margin="12,0"/>
                         </Button>
                         <Button Style="{StaticResource WindowButton}" Width="32" Height="32" Margin="0,0,4,0" Click="MinimizeButton_Click">
@@ -616,7 +618,7 @@
                             <TextBox x:Name="txtURL" Style="{StaticResource URLInputTextBox}" FontFamily="{StaticResource JetBrainsReg}"
                                      SelectionBrush="{StaticResource AccentColor}" CaretBrush="{StaticResource TextSecondary}"
                                      Height="44" Foreground="{StaticResource TextPrimary}" FontSize="13" VerticalContentAlignment="Center"/>
-                            <Button Grid.Column="1" Click="Download_Click" Style="{StaticResource DownloadButton}" FontFamily="{StaticResource JetBrainsReg}"
+                            <Button x:Name="btnDownload" Grid.Column="1" Click="Download_Click" Style="{StaticResource DownloadButton}" FontFamily="{StaticResource JetBrainsReg}"
                                     Foreground="White" FontWeight="SemiBold" Height="44" Margin="10,0,0,0" FontSize="13">Download</Button>
                         </Grid>
                     </StackPanel>
@@ -638,7 +640,7 @@
                                 <Path Data="M 2 14 L 2 4 C 2 3 3 2 4 2 L 10 2 L 12 5 L 18 5 C 19 5 20 6 20 7 L 20 14 C 20 15 19 16 18 16 L 4 16 C 3 16 2 15 2 14 Z"
                                       Stroke="{StaticResource TextPrimary}" StrokeThickness="1.5" Fill="Transparent" Width="20" Height="16"/>
                             </Button>
-                            <Button Grid.Column="2" Click="FileCookies_Click" Style="{StaticResource FilePathButton}" FontFamily="{StaticResource JetBrainsReg}"
+                            <Button x:Name="btnCookies" Grid.Column="2" Click="FileCookies_Click" Style="{StaticResource FilePathButton}" FontFamily="{StaticResource JetBrainsReg}"
                                     Foreground="{StaticResource TextPrimary}" Height="44" Margin="8,0,0,0" FontSize="12" Padding="16,0">Cookies</Button>
                         </Grid>
                     </StackPanel>
@@ -775,16 +777,33 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
                         <!-- Settings Header -->
                         <TextBlock Grid.Row="0" Text="Settings" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
                                    FontSize="15" FontWeight="Bold" Margin="0,0,0,16"/>
 
-                        <!-- File Format -->
+                        <!-- Preset -->
                         <Grid Grid.Row="1" Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">Preset</TextBlock>
+                            <ComboBox x:Name="cmbPreset" Grid.Column="1" Style="{StaticResource RoundedComboBox}" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" Height="32" SelectionChanged="cmbPreset_SelectionChanged">
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" FontFamily="{StaticResource JetBrainsReg}" IsSelected="True">Normal</ComboBoxItem>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" FontFamily="{StaticResource JetBrainsReg}">YouTube 4K</ComboBoxItem>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" FontFamily="{StaticResource JetBrainsReg}">Music library</ComboBoxItem>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" FontFamily="{StaticResource JetBrainsReg}">Podcast</ComboBoxItem>
+                            </ComboBox>
+                        </Grid>
+
+                        <!-- File Format -->
+                        <Grid Grid.Row="2" Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -803,8 +822,24 @@
                             </ComboBox>
                         </Grid>
 
+                        <!-- Quality -->
+                        <Grid Grid.Row="3" Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">Quality</TextBlock>
+                            <ComboBox x:Name="cmbQuality" Grid.Column="1" Style="{StaticResource RoundedComboBox}" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" Height="32">
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" FontFamily="{StaticResource JetBrainsReg}" IsSelected="True">best</ComboBoxItem>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" FontFamily="{StaticResource JetBrainsReg}">1080p</ComboBoxItem>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" FontFamily="{StaticResource JetBrainsReg}">720p</ComboBoxItem>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" FontFamily="{StaticResource JetBrainsReg}">480p</ComboBoxItem>
+                                <ComboBoxItem Style="{StaticResource RoundedComboBoxItem}" FontFamily="{StaticResource JetBrainsReg}">360p</ComboBoxItem>
+                            </ComboBox>
+                        </Grid>
+
                         <!-- File Name -->
-                        <Grid Grid.Row="2" Margin="0,0,0,12">
+                        <Grid Grid.Row="4" Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="*"/>
@@ -816,7 +851,7 @@
                         </Grid>
 
                         <!-- Thumbnail Only -->
-                        <Grid Grid.Row="3" Margin="0,0,0,16">
+                        <Grid Grid.Row="5" Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
@@ -826,7 +861,8 @@
                         </Grid>
 
                         <!-- Multi URLs Section -->
-                        <Grid Grid.Row="4" Margin="0,0,0,12">
+                        <Grid Grid.Row="7" Margin="0,12,0,0"
+                              Visibility="{Binding IsChecked, ElementName=cbMultiDownload, Converter={StaticResource BoolToVis}}">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
@@ -849,7 +885,7 @@
                         </Grid>
 
                         <!-- Multi Download Toggle -->
-                        <Grid Grid.Row="5">
+                        <Grid Grid.Row="6">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
