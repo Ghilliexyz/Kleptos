@@ -1062,15 +1062,15 @@ namespace Kleptos
 
                 if (_currentSession != null)
                 {
-                    // Don't fight the playlist parser — it sets CompletedItems directly.
-                    // Only bump it when this run wasn't a playlist (i.e. no playlist progress line was seen).
                     int observedItems = _currentSession.Items.Count;
-                    if (_currentSession.CompletedItems < observedItems &&
-                        _currentSession.TotalItems == observedItems)
+                    if (_currentSession.CompletedItems < observedItems)
                     {
                         _currentSession.CompletedItems = observedItems;
                     }
-                    UpdateProgressBar(100);
+                    // Render at the completion boundary — no in-progress item, so currentPercent is 0.
+                    // For multi-URL/playlist runs this keeps the bar at (completed / total) instead of
+                    // double-counting and snapping to 100% after every individual item.
+                    UpdateProgressBar(0);
                     UpdateStatsPanel();
                 }
 
