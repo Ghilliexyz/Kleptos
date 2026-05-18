@@ -579,7 +579,7 @@
 
                     <!-- Window Controls -->
                     <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0">
-                        <Button Style="{StaticResource UpdateButtonStyle}" x:Name="UpdateButton" Height="28" Margin="0,0,8,0" Click="Update_Click">
+                        <Button Style="{StaticResource UpdateButtonStyle}" x:Name="UpdateButton" Height="28" Margin="0,0,8,0" Click="Update_Click" Visibility="Collapsed">
                             <TextBlock Text="Update Available" Foreground="White" FontFamily="{StaticResource JetBrainsReg}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11" Margin="12,0"/>
                         </Button>
                         <Button Style="{StaticResource WindowButton}" Width="32" Height="32" Margin="0,0,4,0" Click="MinimizeButton_Click">
