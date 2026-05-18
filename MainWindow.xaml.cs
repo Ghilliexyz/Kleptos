@@ -2015,8 +2015,17 @@ namespace Kleptos
                     return;
                 }
 
-                var newVersion = await manager.CheckForUpdatesAsync();
-                if (newVersion == null) return;
+                var updateInfo = await manager.CheckForUpdatesAsync();
+                var currentVersion = manager.CurrentVersion;
+                var targetVersion = updateInfo?.TargetFullRelease?.Version;
+
+                Debug.WriteLine($"Kleptos update probe: installed={currentVersion}, candidate={targetVersion?.ToString() ?? "<none>"}");
+
+                // Only flag as "Update Available" when the candidate is strictly newer than what's installed.
+                // Velopack sometimes returns an UpdateInfo for equal-version reinstalls, which would otherwise
+                // pin the badge on forever.
+                if (updateInfo == null || targetVersion == null || currentVersion == null) return;
+                if (targetVersion <= currentVersion) return;
 
                 hasUpdate = true;
                 ManageUpdateButton();
@@ -2036,14 +2045,20 @@ namespace Kleptos
             try
             {
                 var manager = new UpdateManager(GetGithubSource());
-                var newVersion = await manager.CheckForUpdatesAsync();
-                if (newVersion == null) return;
-                await manager.DownloadUpdatesAsync(newVersion);
-                manager.ApplyUpdatesAndRestart(newVersion);
+                var updateInfo = await manager.CheckForUpdatesAsync();
+                if (updateInfo == null) return;
+
+                var currentVersion = manager.CurrentVersion;
+                var targetVersion = updateInfo.TargetFullRelease?.Version;
+                if (targetVersion == null || currentVersion == null || targetVersion <= currentVersion) return;
+
+                await manager.DownloadUpdatesAsync(updateInfo);
+                manager.ApplyUpdatesAndRestart(updateInfo);
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error during update process: {Message}", ex.Message);
+                throw;
             }
         }
 
