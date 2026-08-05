@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Kleptos.MessageDialog"
+        Title="Kleptos"
+        SizeToContent="WidthAndHeight"
+        MinWidth="380" MaxWidth="520"
+        CanResize="False"
+        ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner"
+        SystemDecorations="None"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent">
+
+    <Window.Styles>
+        <!-- Secondary dialog button -->
+        <Style Selector="Button.Dialog">
+            <Setter Property="Background" Value="#252525"/>
+            <Setter Property="Foreground" Value="#e1e1e1"/>
+            <Setter Property="FontFamily" Value="{DynamicResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="MinWidth" Value="88"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border x:Name="Border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.Dialog:pointerover /template/ Border#Border">
+            <Setter Property="Background" Value="#2a2a2a"/>
+        </Style>
+        <Style Selector="Button.Dialog:pressed /template/ Border#Border">
+            <Setter Property="Background" Value="#ff3c3c"/>
+        </Style>
+
+        <!-- Primary (accent) dialog button -->
+        <Style Selector="Button.Primary">
+            <Setter Property="Background" Value="#ff3c3c"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="{DynamicResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="MinWidth" Value="88"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border x:Name="Border" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+        <Style Selector="Button.Primary:pointerover /template/ Border#Border">
+            <Setter Property="Background" Value="#ff5555"/>
+        </Style>
+        <Style Selector="Button.Primary:pressed /template/ Border#Border">
+            <Setter Property="Background" Value="#cc3030"/>
+        </Style>
+    </Window.Styles>
+
+    <Border CornerRadius="12" BorderBrush="#333333" BorderThickness="1" Background="#1e1e1e" Padding="20">
+        <StackPanel>
+            <TextBlock x:Name="txtTitle" Foreground="#e1e1e1" FontFamily="{StaticResource JetBrainsReg}"
+                       FontSize="14" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,10"/>
+            <TextBlock x:Name="txtMessage" Foreground="#e1e1e1" FontFamily="{StaticResource JetBrainsReg}"
+                       FontSize="12" TextWrapping="Wrap" MaxWidth="440" Margin="0,0,0,18"/>
+            <StackPanel x:Name="pnlButtons" Orientation="Horizontal" HorizontalAlignment="Right"/>
+        </StackPanel>
+    </Border>
+</Window>

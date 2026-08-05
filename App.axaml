@@ -1,0 +1,27 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Kleptos.App"
+             RequestedThemeVariant="Dark">
+
+  <Application.Resources>
+    <FontFamily x:Key="JetBrainsReg">avares://Kleptos/fonts/JetBrainsMono-Regular.ttf#JetBrains Mono</FontFamily>
+  </Application.Resources>
+
+  <Application.Styles>
+    <FluentTheme />
+  </Application.Styles>
+
+  <TrayIcon.Icons>
+    <TrayIcons>
+      <TrayIcon ToolTipText="Kleptos" Icon="/Assets/favicon.png">
+        <TrayIcon.Menu>
+          <NativeMenu>
+            <NativeMenuItem Header="Show Kleptos" Click="TrayShow_Click" />
+            <NativeMenuItem Header="Quit" Click="TrayQuit_Click" />
+          </NativeMenu>
+        </TrayIcon.Menu>
+      </TrayIcon>
+    </TrayIcons>
+  </TrayIcon.Icons>
+
+</Application>
