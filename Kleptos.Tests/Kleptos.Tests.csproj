@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Unit tests for the UI-free service layer. The services are compiled in directly
+       (linked) rather than referencing the WinExe app project. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../Models/**/*.cs" Link="Linked/Models/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../Services/**/*.cs" Link="Linked/Services/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../PlatformHelper.cs" Link="Linked/PlatformHelper.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+</Project>

@@ -17,6 +17,9 @@ public static class PlatformHelper
         OperatingSystem.IsMacOS() ? "yt-dlp_macos" :
         "yt-dlp_linux";
 
+    public static string FfmpegBinaryName => OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg";
+    public static string FfprobeBinaryName => OperatingSystem.IsWindows() ? "ffprobe.exe" : "ffprobe";
+
     /// <summary>chmod +x on non-Windows; no-op on Windows. Never throws.</summary>
     public static void MakeExecutable(string path)
     {
@@ -35,12 +38,18 @@ public static class PlatformHelper
     /// Verifies the file is a plausible yt-dlp binary for the current OS:
     /// at least 1 MB and the right executable magic (PE / Mach-O / ELF).
     /// </summary>
-    public static bool IsValidYtDlpBinary(string path)
+    public static bool IsValidYtDlpBinary(string path) => IsValidExecutable(path, 1_000_000); // yt-dlp is well over 1 MB
+
+    /// <summary>
+    /// True when the file is at least <paramref name="minBytes"/> long and starts with the
+    /// executable magic for the current OS (PE / Mach-O / ELF).
+    /// </summary>
+    public static bool IsValidExecutable(string path, long minBytes)
     {
         try
         {
             var info = new FileInfo(path);
-            if (!info.Exists || info.Length < 1_000_000) // yt-dlp is well over 1 MB
+            if (!info.Exists || info.Length < minBytes)
                 return false;
 
             Span<byte> header = stackalloc byte[4];
@@ -76,16 +85,20 @@ public static class PlatformHelper
     }
 
     /// <summary>
-    /// Locates ffmpeg: first next to the app, then on PATH. Returns null when not found
+    /// Locates ffmpeg: next to the app, then in Kleptos's own tools folder (where it is
+    /// downloaded on macOS/Linux), then on PATH. Returns null when not found
     /// (ffmpeg is only needed for merging/recode/thumbnail conversion, so this is a warning,
     /// not a fatal error).
     /// </summary>
     public static string? FindFfmpeg()
     {
-        var fileName = OperatingSystem.IsWindows() ? "ffmpeg.exe" : "ffmpeg";
+        var fileName = FfmpegBinaryName;
 
         var nextToApp = Path.Combine(AppContext.BaseDirectory, fileName);
         if (File.Exists(nextToApp)) return nextToApp;
+
+        var managed = Path.Combine(Services.AppPaths.ToolsDir, fileName);
+        if (File.Exists(managed)) return managed;
 
         var pathVar = Environment.GetEnvironmentVariable("PATH");
         if (!string.IsNullOrEmpty(pathVar))

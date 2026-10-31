@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Kleptos.MainWindow"
-        Title="Kleptos" Height="600" Width="1000" MinHeight="480" MinWidth="760"
+        Title="Kleptos" Height="720" Width="1120" MinHeight="560" MinWidth="880"
         WindowStartupLocation="CenterScreen"
         SystemDecorations="None"
         TransparencyLevelHint="Transparent"
@@ -22,6 +22,10 @@
         <SolidColorBrush x:Key="ScrollBarThumb" Color="#3a3a3a"/>
         <SolidColorBrush x:Key="ScrollBarThumbHover" Color="#505050"/>
         <SolidColorBrush x:Key="ScrollBarThumbPressed" Color="#606060"/>
+        <!-- Status colors: always paired with a text label, never color alone -->
+        <SolidColorBrush x:Key="StatusGood" Color="#4ecdc4"/>
+        <SolidColorBrush x:Key="StatusBad" Color="#ff3c3c"/>
+        <SolidColorBrush x:Key="StatusNeutral" Color="#7a7a7a"/>
     </Window.Resources>
 
     <Window.Styles>
@@ -92,7 +96,11 @@
             <Setter Property="Template">
                 <ControlTemplate>
                     <Border x:Name="Border" CornerRadius="8" Background="{DynamicResource BackgroundInput}" BorderThickness="2" BorderBrush="Transparent" ClipToBounds="True">
-                        <TextPresenter Name="PART_TextPresenter" Margin="12,0" VerticalAlignment="Center"
+                        <Panel Margin="12,0" VerticalAlignment="Center">
+                            <TextBlock Text="{TemplateBinding Watermark}" Foreground="#5f5f5f" FontFamily="{TemplateBinding FontFamily}" FontSize="{TemplateBinding FontSize}"
+                                       VerticalAlignment="Center" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                            <TextPresenter Name="PART_TextPresenter" VerticalAlignment="Center"
                                        Text="{TemplateBinding Text, Mode=TwoWay}"
                                        CaretIndex="{TemplateBinding CaretIndex}"
                                        SelectionStart="{TemplateBinding SelectionStart}"
@@ -101,6 +109,7 @@
                                        CaretBrush="{TemplateBinding CaretBrush}"
                                        TextAlignment="{TemplateBinding TextAlignment}"
                                        TextWrapping="{TemplateBinding TextWrapping}"/>
+                                   </Panel>
                     </Border>
                 </ControlTemplate>
             </Setter>
@@ -114,7 +123,11 @@
             <Setter Property="Template">
                 <ControlTemplate>
                     <Border x:Name="Border" CornerRadius="6" Background="{DynamicResource BackgroundInput}" BorderThickness="1" BorderBrush="{DynamicResource BorderSubtle}">
-                        <TextPresenter Name="PART_TextPresenter" Margin="8,0" VerticalAlignment="Center"
+                        <Panel Margin="8,0" VerticalAlignment="Center">
+                            <TextBlock Text="{TemplateBinding Watermark}" Foreground="#5f5f5f" FontFamily="{TemplateBinding FontFamily}" FontSize="{TemplateBinding FontSize}"
+                                       VerticalAlignment="Center" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                            <TextPresenter Name="PART_TextPresenter" VerticalAlignment="Center"
                                        Text="{TemplateBinding Text, Mode=TwoWay}"
                                        CaretIndex="{TemplateBinding CaretIndex}"
                                        SelectionStart="{TemplateBinding SelectionStart}"
@@ -123,6 +136,7 @@
                                        CaretBrush="{TemplateBinding CaretBrush}"
                                        TextAlignment="{TemplateBinding TextAlignment}"
                                        TextWrapping="{TemplateBinding TextWrapping}"/>
+                                   </Panel>
                     </Border>
                 </ControlTemplate>
             </Setter>
@@ -186,7 +200,11 @@
             <Setter Property="Template">
                 <ControlTemplate>
                     <Border x:Name="Border" CornerRadius="8" Background="{DynamicResource BackgroundInput}" BorderThickness="2" BorderBrush="Transparent" ClipToBounds="True">
-                        <TextPresenter Name="PART_TextPresenter" Margin="12,0" VerticalAlignment="Center"
+                        <Panel Margin="12,0" VerticalAlignment="Center">
+                            <TextBlock Text="{TemplateBinding Watermark}" Foreground="#5f5f5f" FontFamily="{TemplateBinding FontFamily}" FontSize="{TemplateBinding FontSize}"
+                                       VerticalAlignment="Center" IsHitTestVisible="False" TextTrimming="CharacterEllipsis"
+                                       IsVisible="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+                            <TextPresenter Name="PART_TextPresenter" VerticalAlignment="Center"
                                        Text="{TemplateBinding Text, Mode=TwoWay}"
                                        CaretIndex="{TemplateBinding CaretIndex}"
                                        SelectionStart="{TemplateBinding SelectionStart}"
@@ -195,6 +213,7 @@
                                        CaretBrush="{TemplateBinding CaretBrush}"
                                        TextAlignment="{TemplateBinding TextAlignment}"
                                        TextWrapping="{TemplateBinding TextWrapping}"/>
+                                   </Panel>
                     </Border>
                 </ControlTemplate>
             </Setter>
@@ -487,6 +506,74 @@
         <Style Selector="CheckBox.Modern:checked /template/ Path#CheckMark">
             <Setter Property="IsVisible" Value="True"/>
         </Style>
+
+        <!-- Shared text roles -->
+        <Style Selector="TextBlock.OptLabel">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBlock.SectionTitle">
+            <Setter Property="Foreground" Value="{DynamicResource AccentColor}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,4,0,12"/>
+        </Style>
+        <Style Selector="TextBlock.RowLabel">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style Selector="TextBlock.RowHint">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,3,0,0"/>
+        </Style>
+        <Style Selector="Border.Section">
+            <Setter Property="Background" Value="{DynamicResource BackgroundInput}"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="0,0,0,14"/>
+        </Style>
+        <Style Selector="Border.Section Button.Secondary">
+            <Setter Property="Background" Value="#303030"/>
+        </Style>
+        <Style Selector="Grid.SettingRow">
+            <Setter Property="Margin" Value="0,0,0,14"/>
+        </Style>
+
+        <!-- Stat tiles (Progress + History tabs) -->
+        <Style Selector="Border.Tile">
+            <Setter Property="Background" Value="{DynamicResource BackgroundInput}"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Padding" Value="12,10"/>
+        </Style>
+        <Style Selector="TextBlock.TileLabel">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="10"/>
+        </Style>
+        <Style Selector="TextBlock.TileValue">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="19"/>
+            <Setter Property="Margin" Value="0,4,0,2"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+        <Style Selector="TextBlock.TileSub">
+            <Setter Property="Foreground" Value="{DynamicResource TextSecondary}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+        </Style>
+        <Style Selector="TextBlock.CardTitle">
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimary}"/>
+            <Setter Property="FontFamily" Value="{DynamicResource JetBrainsReg}"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
     </Window.Styles>
 
     <Border CornerRadius="16" BorderBrush="{StaticResource BorderSubtle}" BorderThickness="1" Background="{StaticResource BackgroundDark}" DragDrop.AllowDrop="True">
@@ -508,7 +595,7 @@
                     <!-- Version Text -->
                     <TextBlock Grid.Column="0" x:Name="txtKleptosVersion" FontFamily="{StaticResource JetBrainsReg}"
                                VerticalAlignment="Center" HorizontalAlignment="Left" Margin="20,0,0,0"
-                               Foreground="{StaticResource TextSecondary}" FontSize="11" Text="v1.2.0"/>
+                               Foreground="{StaticResource TextSecondary}" FontSize="11" Text="v1.3.0"/>
 
                     <!-- Title -->
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -526,9 +613,15 @@
                                   Fill="{StaticResource AccentColor}"
                                   Stretch="Uniform" Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Button>
+                        <Button x:Name="btnSettings" Classes="Window" Width="32" Height="32" Margin="0,0,4,0" Click="Settings_Click"
+                                ToolTip.Tip="Settings">
+                            <Path Data="M 19.14 12.94 C 19.18 12.64 19.2 12.33 19.2 12 C 19.2 11.68 19.18 11.36 19.13 11.06 L 21.16 9.48 C 21.34 9.34 21.39 9.07 21.28 8.87 L 19.36 5.55 C 19.24 5.33 18.99 5.26 18.77 5.33 L 16.38 6.29 C 15.88 5.91 15.35 5.59 14.76 5.35 L 14.4 2.81 C 14.36 2.57 14.16 2.4 13.92 2.4 L 10.08 2.4 C 9.84 2.4 9.65 2.57 9.61 2.81 L 9.25 5.35 C 8.66 5.59 8.12 5.92 7.63 6.29 L 5.24 5.33 C 5.02 5.25 4.77 5.33 4.65 5.55 L 2.74 8.87 C 2.62 9.08 2.66 9.34 2.86 9.48 L 4.89 11.06 C 4.84 11.36 4.8 11.69 4.8 12 C 4.8 12.31 4.82 12.64 4.87 12.94 L 2.84 14.52 C 2.66 14.66 2.61 14.93 2.72 15.13 L 4.64 18.45 C 4.76 18.67 5.01 18.74 5.23 18.67 L 7.62 17.71 C 8.12 18.09 8.65 18.41 9.24 18.65 L 9.6 21.19 C 9.65 21.43 9.84 21.6 10.08 21.6 L 13.92 21.6 C 14.16 21.6 14.36 21.43 14.39 21.19 L 14.75 18.65 C 15.34 18.41 15.88 18.09 16.37 17.71 L 18.76 18.67 C 18.98 18.75 19.23 18.67 19.35 18.45 L 21.27 15.13 C 21.39 14.91 21.34 14.66 21.15 14.52 Z M 12 15.6 C 10.02 15.6 8.4 13.98 8.4 12 C 8.4 10.02 10.02 8.4 12 8.4 C 13.98 8.4 15.6 10.02 15.6 12 C 15.6 13.98 13.98 15.6 12 15.6 Z"
+                                  Fill="{StaticResource TextSecondary}"
+                                  Stretch="Uniform" Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Button>
                         <Button Classes="Window" Width="32" Height="32" Margin="0,0,4,0" Click="Help_Click"
                                 Content="?" FontFamily="{StaticResource JetBrainsReg}" FontSize="14"
-                                Foreground="{StaticResource TextSecondary}"/>
+                                Foreground="{StaticResource TextSecondary}" ToolTip.Tip="Help"/>
                         <Button Classes="Window" Width="32" Height="32" Margin="0,0,4,0" Click="MinimizeButton_Click">
                             <Path Data="M 4 9 h8 v2 h-8 Z" Fill="{StaticResource TextSecondary}"
                                   Stretch="Uniform" Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -544,11 +637,11 @@
             <!-- Main Content -->
             <Grid Background="{StaticResource BackgroundDark}" Grid.Row="1" Margin="20,0,20,20">
 
-                <!-- Main Page (Downloader + Settings) -->
+                <!-- Main Page (Downloader + Options) -->
                 <Grid x:Name="pnlMain">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2.3*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*" MinWidth="270"/>
                 </Grid.ColumnDefinitions>
 
                 <!-- Left Panel -->
@@ -556,11 +649,12 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
                     <!-- URL Input Section -->
-                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                    <StackPanel Grid.Row="0" Margin="0,0,0,12">
                         <TextBlock Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="13" Margin="4,0,0,8">URL</TextBlock>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -569,18 +663,54 @@
                             </Grid.ColumnDefinitions>
                             <TextBox x:Name="txtURL" Classes="UrlInput" FontFamily="{StaticResource JetBrainsReg}"
                                      SelectionBrush="{StaticResource AccentColor}" CaretBrush="{StaticResource TextSecondary}"
+                                     Watermark="Paste a link, or drop one anywhere"
                                      Height="44" Foreground="{StaticResource TextPrimary}" FontSize="13" VerticalContentAlignment="Center"/>
                             <Button x:Name="btnDownload" Grid.Column="1" Click="Download_Click" Classes="Download" FontFamily="{StaticResource JetBrainsReg}"
-                                    Foreground="White" Height="44" Margin="10,0,0,0" FontSize="13">Download</Button>
+                                    Foreground="White" Height="44" Margin="10,0,0,0" FontSize="13" MinWidth="120">Download</Button>
                         </Grid>
                         <TextBlock x:Name="txtPlaylistHint" IsVisible="False"
-                                   Text="This looks like a playlist. Enable 'Download playlists' in Settings to download all of it."
+                                   Text="This looks like a playlist. Tick 'Download playlists' in Options to grab all of it (or pick items)."
                                    Foreground="{StaticResource AccentColor}" FontFamily="{StaticResource JetBrainsReg}"
                                    FontSize="11" Margin="4,8,0,0" TextWrapping="Wrap"/>
                     </StackPanel>
 
+                    <!-- Preview Card -->
+                    <Border x:Name="pnlPreview" Grid.Row="1" CornerRadius="12" Background="{StaticResource BackgroundCard}" Padding="10" Margin="0,0,0,12" IsVisible="False">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="bdrPreviewThumb" Width="128" Height="72" CornerRadius="8" ClipToBounds="True" Background="{StaticResource BackgroundInput}">
+                                <Panel>
+                                    <Image x:Name="imgPreviewThumb" Stretch="UniformToFill" RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                                    <Border x:Name="bdrPreviewDuration" Background="#CC000000" CornerRadius="4" Padding="5,1" Margin="4"
+                                            HorizontalAlignment="Right" VerticalAlignment="Bottom" IsVisible="False">
+                                        <TextBlock x:Name="txtPreviewDuration" Foreground="White" FontFamily="{StaticResource JetBrainsReg}" FontSize="10"/>
+                                    </Border>
+                                </Panel>
+                            </Border>
+                            <StackPanel Grid.Column="1" Margin="12,0,12,0" VerticalAlignment="Center">
+                                <TextBlock x:Name="txtPreviewTitle" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
+                                           FontSize="13" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"/>
+                                <TextBlock x:Name="txtPreviewMeta" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}"
+                                           FontSize="11" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock x:Name="txtPreviewStatus" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}"
+                                           FontSize="11" Margin="0,4,0,0" TextTrimming="CharacterEllipsis" IsVisible="False"/>
+                            </StackPanel>
+                            <StackPanel x:Name="pnlFormatPicker" Grid.Column="2" VerticalAlignment="Center" Width="250" IsVisible="False">
+                                <TextBlock Classes="OptLabel" FontSize="11" Margin="2,0,0,6" Text="Exact format"/>
+                                <ComboBox x:Name="cmbExactFormat" Classes="Rounded" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}"
+                                          FontSize="11" Height="32" HorizontalAlignment="Stretch" MaxDropDownHeight="320"
+                                          SelectionChanged="cmbExactFormat_SelectionChanged"
+                                          ToolTip.Tip="Pick a specific stream from this video. Auto uses the Format and Quality options."/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
                     <!-- File Output Section -->
-                    <StackPanel Grid.Row="1" Margin="0,0,0,16">
+                    <StackPanel Grid.Row="2" Margin="0,0,0,14">
                         <TextBlock Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="13" Margin="4,0,0,8">Output Location</TextBlock>
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -592,18 +722,20 @@
                                      SelectionBrush="{StaticResource AccentColor}" CaretBrush="{StaticResource TextSecondary}"
                                      Height="44" Foreground="{StaticResource TextPrimary}" FontSize="13" VerticalContentAlignment="Center"/>
                             <Button Grid.Column="1" Click="FileOutput_Click" Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
-                                    Foreground="{StaticResource TextPrimary}" Width="44" Height="44" Margin="10,0,0,0" FontSize="16">
+                                    Foreground="{StaticResource TextPrimary}" Width="44" Height="44" Margin="10,0,0,0" FontSize="16"
+                                    ToolTip.Tip="Choose folder">
                                 <Path Data="M 2 14 L 2 4 C 2 3 3 2 4 2 L 10 2 L 12 5 L 18 5 C 19 5 20 6 20 7 L 20 14 C 20 15 19 16 18 16 L 4 16 C 3 16 2 15 2 14 Z"
                                       Stroke="{StaticResource TextPrimary}" StrokeThickness="1.5" Fill="Transparent" Width="20" Height="16"
                                       Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </Button>
-                            <Button x:Name="btnCookies" Grid.Column="2" Click="FileCookies_Click" Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
-                                    Foreground="{StaticResource TextPrimary}" Height="44" Margin="8,0,0,0" FontSize="12" Padding="16,0">Cookies</Button>
+                            <Button Grid.Column="2" Click="OpenOutput_Click" Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
+                                    Foreground="{StaticResource TextPrimary}" Height="44" Margin="8,0,0,0" FontSize="12" Padding="16,0"
+                                    ToolTip.Tip="Open the output folder">Open</Button>
                         </Grid>
                     </StackPanel>
 
                     <!-- Output Section with Pill Toggle -->
-                    <Grid Grid.Row="2">
+                    <Grid Grid.Row="3">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -612,20 +744,20 @@
                         <!-- Pill Toggle Bar -->
                         <Border Grid.Row="0" Background="{StaticResource BackgroundCard}" CornerRadius="10" Padding="4" Margin="0,0,0,8">
                             <StackPanel Orientation="Horizontal">
-                                <RadioButton x:Name="rbShowInfo" Content="Show Info" Classes="Pill"
+                                <RadioButton x:Name="rbShowInfo" Content="Progress" Classes="Pill"
                                              GroupName="OutputToggle" IsChecked="True" Checked="OutputToggle_Checked"/>
-                                <RadioButton x:Name="rbConsole" Content="Console" Classes="Pill"
-                                             GroupName="OutputToggle" Margin="4,0,0,0" Checked="OutputToggle_Checked"/>
-                                <RadioButton x:Name="rbSegments" Content="Segments" Classes="Pill"
-                                             GroupName="OutputToggle" Margin="4,0,0,0" Checked="OutputToggle_Checked"/>
                                 <RadioButton x:Name="rbQueue" Content="Queue" Classes="Pill"
                                              GroupName="OutputToggle" Margin="4,0,0,0" Checked="OutputToggle_Checked"/>
                                 <RadioButton x:Name="rbHistory" Content="History" Classes="Pill"
                                              GroupName="OutputToggle" Margin="4,0,0,0" Checked="OutputToggle_Checked"/>
+                                <RadioButton x:Name="rbSegments" Content="Segments" Classes="Pill"
+                                             GroupName="OutputToggle" Margin="4,0,0,0" Checked="OutputToggle_Checked"/>
+                                <RadioButton x:Name="rbConsole" Content="Console" Classes="Pill"
+                                             GroupName="OutputToggle" Margin="4,0,0,0" Checked="OutputToggle_Checked"/>
                             </StackPanel>
                         </Border>
 
-                        <!-- Show Info Panel -->
+                        <!-- Progress Panel -->
                         <Border x:Name="pnlShowInfo" Grid.Row="1" CornerRadius="12" Background="{StaticResource BackgroundCard}" Padding="16" IsVisible="True">
                             <Grid>
                                 <Grid.RowDefinitions>
@@ -637,18 +769,18 @@
 
                                 <!-- Progress Header -->
                                 <Grid Grid.Row="0" Margin="0,0,0,8">
-                                    <TextBlock Text="Progress" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
+                                    <TextBlock Text="Overall" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
                                                FontSize="12" VerticalAlignment="Center"/>
                                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                                         <TextBlock x:Name="txtSpeedEta" Text="" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}"
-                                                   FontSize="12" Margin="0,0,8,0"/>
+                                                   FontSize="12" Margin="0,0,10,0"/>
                                         <TextBlock x:Name="txtProgressPercent" Text="0%" Foreground="{StaticResource AccentColor}" FontFamily="{StaticResource JetBrainsReg}"
                                                    FontSize="12"/>
                                     </StackPanel>
                                 </Grid>
 
                                 <!-- Progress Bar -->
-                                <Border Grid.Row="1" Height="8" CornerRadius="4" Background="{StaticResource BackgroundInput}" Margin="0,0,0,10">
+                                <Border x:Name="progressBarTrack" Grid.Row="1" Height="8" CornerRadius="4" Background="{StaticResource BackgroundInput}" Margin="0,0,0,10">
                                     <Border x:Name="progressBarFill" Height="8" CornerRadius="4" Background="{StaticResource AccentColor}"
                                             HorizontalAlignment="Left" Width="0"/>
                                 </Border>
@@ -656,16 +788,16 @@
                                 <!-- Current Status -->
                                 <TextBlock x:Name="txtCurrentStatus" Grid.Row="2" Text="Waiting to start..."
                                            Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}"
-                                           FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,0,0,12"/>
+                                           FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,0,0,14"/>
 
-                                <!-- Stats Area -->
+                                <!-- Stats Area (built in MainWindow.Stats.cs) -->
                                 <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
-                                    <StackPanel x:Name="pnlStats"/>
+                                    <StackPanel x:Name="pnlStats" Margin="0,0,6,0"/>
                                 </ScrollViewer>
                             </Grid>
                         </Border>
 
-                        <!-- Console Panel (existing, now toggled) -->
+                        <!-- Console Panel -->
                         <Grid x:Name="pnlConsole" Grid.Row="1" IsVisible="False">
                             <Border CornerRadius="12" Background="{StaticResource BackgroundCard}" Padding="12">
                                 <ScrollViewer x:Name="scrollViewer" FontSize="11" VerticalScrollBarVisibility="Auto">
@@ -674,7 +806,7 @@
                                              IsReadOnly="True" TextWrapping="Wrap"/>
                                 </ScrollViewer>
                             </Border>
-                            <Button Click="CopyLogs_Click" Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
+                            <Button Click="CopyLogs_Click" Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}" ToolTip.Tip="Copy the full log"
                                     Foreground="{StaticResource TextPrimary}" Width="36" Height="36" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,8,8">
                                 <Path Data="M 4 2 L 12 2 L 12 12 L 4 12 Z M 6 12 L 6 14 L 14 14 L 14 4 L 12 4"
                                       Stroke="{StaticResource TextSecondary}" StrokeThickness="1.5" Fill="Transparent" Width="14" Height="14"
@@ -702,11 +834,15 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*"/>
                                             <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBlock x:Name="txtSegmentDuration" Text="Duration: --:--:--"
                                                    Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}"
                                                    FontSize="11" VerticalAlignment="Center"/>
-                                        <Button x:Name="btnFetchDuration" Grid.Column="1" Click="btnFetchDuration_Click"
+                                        <Button Grid.Column="1" Click="AddSegment_Click" Margin="0,0,6,0"
+                                                Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
+                                                Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="10,4" Height="28">+ Segment</Button>
+                                        <Button x:Name="btnFetchDuration" Grid.Column="2" Click="btnFetchDuration_Click"
                                                 Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
                                                 Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="10,4" Height="28">Fetch Info</Button>
                                     </Grid>
@@ -732,7 +868,8 @@
 
                                     <!-- Segment Rows -->
                                     <StackPanel x:Name="pnlSegmentRows" Margin="0,0,0,6"/>
-
+                                    <TextBlock Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="10.5" TextWrapping="Wrap"
+                                               Text="Left-click the timeline to set a start, right-click to set an end. Segments apply to single downloads."/>
                                 </StackPanel>
                             </ScrollViewer>
                         </Border>
@@ -744,63 +881,47 @@
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
-                                <Button x:Name="btnClearFinished" Grid.Row="0" Click="ClearFinished_Click" Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
-                                        Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="12,6" Height="30"
-                                        HorizontalAlignment="Left" Margin="0,0,0,10">Clear finished</Button>
+                                <Grid Margin="0,0,0,10">
+                                    <TextBlock x:Name="txtQueueSummary" Classes="OptLabel" FontSize="11" Text="Nothing queued yet."/>
+                                    <Button x:Name="btnClearFinished" Click="ClearFinished_Click" Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
+                                            Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="12,6" Height="30"
+                                            HorizontalAlignment="Right">Clear finished</Button>
+                                </Grid>
                                 <ScrollViewer x:Name="queueScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                                    <StackPanel x:Name="queuePanel"/>
+                                    <StackPanel x:Name="queuePanel" Margin="0,0,6,0"/>
                                 </ScrollViewer>
                             </Grid>
                         </Border>
 
                         <!-- History Panel -->
                         <Border x:Name="pnlHistory" Grid.Row="1" CornerRadius="12" Background="{StaticResource BackgroundCard}" Padding="12" IsVisible="False">
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto"/>
-                                    <RowDefinition Height="*"/>
-                                </Grid.RowDefinitions>
-                                <Button x:Name="btnClearHistory" Grid.Row="0" Click="ClearHistory_Click" Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
-                                        Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="12,6" Height="30"
-                                        HorizontalAlignment="Left" Margin="0,0,0,10">Clear history</Button>
-                                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <StackPanel Margin="0,0,6,0">
+                                    <StackPanel x:Name="pnlLifetime"/>
+                                    <Grid Margin="0,4,0,8">
+                                        <TextBlock Classes="CardTitle" Text="Recent downloads" VerticalAlignment="Center"/>
+                                        <Button x:Name="btnClearHistory" Click="ClearHistory_Click" Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
+                                                Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="12,6" Height="30"
+                                                HorizontalAlignment="Right">Clear history</Button>
+                                    </Grid>
                                     <StackPanel x:Name="historyPanel"/>
-                                </ScrollViewer>
-                            </Grid>
+                                </StackPanel>
+                            </ScrollViewer>
                         </Border>
                     </Grid>
                 </Grid>
 
-                <!-- Right Panel (Settings) -->
+                <!-- Right Panel (per-download Options) -->
                 <Border Grid.Column="1" CornerRadius="12" Background="{StaticResource BackgroundCard}" Margin="10,0,0,0">
                     <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <Grid Margin="16">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+                    <StackPanel Margin="16">
 
-                        <!-- Settings Header -->
-                        <TextBlock Grid.Row="0" Text="Settings" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
+                        <TextBlock Text="Options" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
                                    FontSize="15" Margin="0,0,0,16"/>
 
                         <!-- Preset -->
-                        <Grid Grid.Row="1" Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">Preset</TextBlock>
+                        <Grid ColumnDefinitions="*,*" Margin="0,0,0,12">
+                            <TextBlock Classes="OptLabel">Preset</TextBlock>
                             <ComboBox x:Name="cmbPreset" Grid.Column="1" Classes="Rounded" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" Height="32" HorizontalAlignment="Stretch" SelectedIndex="0" SelectionChanged="cmbPreset_SelectionChanged">
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">Normal</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">YouTube 4K</ComboBoxItem>
@@ -810,34 +931,31 @@
                         </Grid>
 
                         <!-- File Format -->
-                        <Grid Grid.Row="2" Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">Format</TextBlock>
+                        <Grid ColumnDefinitions="*,*" Margin="0,0,0,12">
+                            <TextBlock Classes="OptLabel">Format</TextBlock>
                             <ComboBox x:Name="cmbFileFormats" Grid.Column="1" Classes="Rounded" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" Height="32" HorizontalAlignment="Stretch" SelectedIndex="0">
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">default</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">mp4</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">mkv</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">mov</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">flv</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">webm</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">m4a</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">mp3</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">opus</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">flac</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">wav</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">3gp</ComboBoxItem>
                             </ComboBox>
                         </Grid>
 
                         <!-- Quality -->
-                        <Grid Grid.Row="3" Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">Quality</TextBlock>
+                        <Grid ColumnDefinitions="*,*" Margin="0,0,0,12">
+                            <TextBlock Classes="OptLabel">Quality</TextBlock>
                             <ComboBox x:Name="cmbQuality" Grid.Column="1" Classes="Rounded" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" Height="32" HorizontalAlignment="Stretch" SelectedIndex="0">
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">best</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">2160p</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">1440p</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">1080p</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">720p</ComboBoxItem>
                                 <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}">480p</ComboBoxItem>
@@ -846,47 +964,73 @@
                         </Grid>
 
                         <!-- File Name -->
-                        <Grid Grid.Row="4" Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">File Name</TextBlock>
+                        <Grid ColumnDefinitions="*,*" Margin="0,0,0,12">
+                            <TextBlock Classes="OptLabel">File Name</TextBlock>
                             <TextBox x:Name="txtFileName" Grid.Column="1" Classes="FileName" FontFamily="{StaticResource JetBrainsReg}"
                                      SelectionBrush="{StaticResource AccentColor}" CaretBrush="{StaticResource TextSecondary}"
+                                     Watermark="from template"
+                                     ToolTip.Tip="Leave empty to use the filename template from Settings."
                                      Height="32" Foreground="{StaticResource TextPrimary}" FontSize="12"/>
                         </Grid>
 
+                        <!-- Cookies -->
+                        <Grid ColumnDefinitions="*,*" Margin="0,0,0,8">
+                            <TextBlock Classes="OptLabel">Cookies</TextBlock>
+                            <ComboBox x:Name="cmbCookieSource" Grid.Column="1" Classes="Rounded" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" Height="32" HorizontalAlignment="Stretch" SelectedIndex="0"
+                                      SelectionChanged="cmbCookieSource_SelectionChanged" MaxDropDownHeight="360"
+                                      ToolTip.Tip="Sign in as you: read cookies straight from your browser, or from an exported cookies.txt.">
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="None">None</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="Chrome">Chrome</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="Firefox">Firefox</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="Edge">Edge</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="Brave">Brave</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="Opera">Opera</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="Vivaldi">Vivaldi</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="Chromium">Chromium</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="Safari">Safari</ComboBoxItem>
+                                <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="File">cookies.txt file</ComboBoxItem>
+                            </ComboBox>
+                        </Grid>
+                        <StackPanel x:Name="pnlCookieFile" Margin="0,0,0,8" IsVisible="False">
+                            <Button x:Name="btnCookies" Click="FileCookies_Click" Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
+                                    Foreground="{StaticResource TextPrimary}" Height="32" FontSize="11" HorizontalAlignment="Stretch"
+                                    HorizontalContentAlignment="Center">Choose cookies.txt...</Button>
+                        </StackPanel>
+                        <TextBlock x:Name="txtCookieHint" Classes="RowHint" Margin="0,0,0,12" IsVisible="False"/>
+
                         <!-- Thumbnail Only -->
-                        <Grid Grid.Row="5" Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">Thumbnail Only</TextBlock>
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                            <TextBlock Classes="OptLabel">Thumbnail Only</TextBlock>
                             <CheckBox x:Name="cbThumbnailOnly" Grid.Column="1" Classes="Modern" VerticalAlignment="Center"/>
                         </Grid>
 
                         <!-- Playlist Mode -->
-                        <Grid Grid.Row="6" Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">Download playlists</TextBlock>
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                            <TextBlock Classes="OptLabel">Download playlists</TextBlock>
                             <CheckBox x:Name="cbPlaylist" Grid.Column="1" Classes="Modern" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,*" Margin="0,0,0,12" IsVisible="{Binding #cbPlaylist.IsChecked}">
+                            <TextBlock Classes="OptLabel" Text="  Items"/>
+                            <TextBox x:Name="txtPlaylistItems" Grid.Column="1" Classes="FileName" FontFamily="{StaticResource JetBrainsReg}"
+                                     SelectionBrush="{StaticResource AccentColor}" CaretBrush="{StaticResource TextSecondary}"
+                                     Watermark="all"
+                                     ToolTip.Tip="Which entries to grab: 1-10 for a range, 1,3,5 for picks, -5: for the last five. Empty means all."
+                                     Height="32" Foreground="{StaticResource TextPrimary}" FontSize="12"/>
+                        </Grid>
+
+                        <!-- Skip already downloaded (download archive) -->
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12"
+                              ToolTip.Tip="Remembers every video Kleptos downloads (in an archive file) and skips it next time. Re-run a playlist or channel URL to fetch only the new ones.">
+                            <TextBlock Classes="OptLabel">Skip already downloaded</TextBlock>
+                            <CheckBox x:Name="cbArchive" Grid.Column="1" Classes="Modern" VerticalAlignment="Center"/>
                         </Grid>
 
                         <!-- Subtitles -->
-                        <Grid Grid.Row="7" Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">Download subtitles</TextBlock>
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                            <TextBlock Classes="OptLabel">Download subtitles</TextBlock>
                             <CheckBox x:Name="cbSubs" Grid.Column="1" Classes="Modern" VerticalAlignment="Center"/>
                         </Grid>
-                        <ComboBox x:Name="cmbSubLangs" Grid.Row="8" Classes="Rounded" FontFamily="{StaticResource JetBrainsReg}"
+                        <ComboBox x:Name="cmbSubLangs" Classes="Rounded" FontFamily="{StaticResource JetBrainsReg}"
                                   Foreground="{StaticResource TextPrimary}" Height="32" HorizontalAlignment="Stretch" Margin="0,0,0,12"
                                   SelectedIndex="1"
                                   ToolTip.Tip="Subtitle language"
@@ -920,46 +1064,224 @@
                         </ComboBox>
 
                         <!-- SponsorBlock -->
-                        <Grid Grid.Row="9" Margin="0,0,0,12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">Remove sponsors (SponsorBlock)</TextBlock>
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
+                            <TextBlock Classes="OptLabel">Remove sponsors (SponsorBlock)</TextBlock>
                             <CheckBox x:Name="cbSponsorBlock" Grid.Column="1" Classes="Modern" VerticalAlignment="Center"/>
                         </Grid>
 
                         <!-- Multi Download Toggle -->
-                        <Grid Grid.Row="10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center" FontFamily="{StaticResource JetBrainsReg}" FontSize="12">Enable Multi-Download</TextBlock>
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Classes="OptLabel">Enable Multi-Download</TextBlock>
                             <CheckBox x:Name="cbMultiDownload" Grid.Column="1" Classes="Modern" VerticalAlignment="Center"/>
                         </Grid>
 
                         <!-- Multi URLs Section -->
-                        <Grid Grid.Row="11" Margin="0,12,0,0"
-                              IsVisible="{Binding #cbMultiDownload.IsChecked}">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="*"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,8">Multiple URLs (one per line)</TextBlock>
-                            <TextBox x:Name="txtMultiUrls" Grid.Row="1" Classes="MultiUrls"
+                        <StackPanel Margin="0,12,0,0" IsVisible="{Binding #cbMultiDownload.IsChecked}">
+                            <TextBlock Classes="OptLabel" Margin="0,0,0,8">Multiple URLs (one per line)</TextBlock>
+                            <TextBox x:Name="txtMultiUrls" Classes="MultiUrls"
                                      FontFamily="{StaticResource JetBrainsReg}"
                                      SelectionBrush="{StaticResource AccentColor}"
                                      CaretBrush="{StaticResource TextSecondary}"
                                      Foreground="{StaticResource TextPrimary}"
                                      TextWrapping="Wrap"
                                      AcceptsReturn="True"
+                                     MinHeight="140"
                                      FontSize="11"/>
-                        </Grid>
-                    </Grid>
+                        </StackPanel>
+                    </StackPanel>
                     </ScrollViewer>
                 </Border>
                 </Grid>
+
+                <!-- Settings Page -->
+                <Border x:Name="pnlSettings" IsVisible="False" CornerRadius="12" Background="{StaticResource BackgroundCard}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="24" MaxWidth="760">
+
+                            <Grid Margin="0,0,0,18" ColumnDefinitions="Auto,*">
+                                <Button Content="&lt; Back" Click="SettingsBack_Click"
+                                        Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
+                                        Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="12,6" Height="30"/>
+                                <TextBlock Grid.Column="1" Text="Settings" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
+                                           FontSize="15" VerticalAlignment="Center" Margin="16,0,0,0"/>
+                            </Grid>
+
+                            <!-- Downloads -->
+                            <Border Classes="Section">
+                                <StackPanel>
+                                    <TextBlock Classes="SectionTitle" Text="Downloads"/>
+                                    <Grid Classes="SettingRow" ColumnDefinitions="*,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="Simultaneous downloads"/>
+                                            <TextBlock Classes="RowHint" Text="How many links in a multi-download or retry batch run at the same time."/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="cmbParallel" Grid.Column="1" Classes="Rounded" Width="140" Height="32" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}">
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="1">1 (one by one)</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="2">2</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="3">3</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="4">4</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="6">6</ComboBoxItem>
+                                        </ComboBox>
+                                    </Grid>
+                                    <Grid Classes="SettingRow" ColumnDefinitions="*,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="Fragments per download"/>
+                                            <TextBlock Classes="RowHint" Text="Fetch pieces of a video in parallel. Big speed-up on YouTube and HLS streams."/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="cmbFragments" Grid.Column="1" Classes="Rounded" Width="140" Height="32" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}">
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="1">1 (off)</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="2">2</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="4">4</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="8">8</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="16">16</ComboBoxItem>
+                                        </ComboBox>
+                                    </Grid>
+                                    <Grid Classes="SettingRow" ColumnDefinitions="*,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="Speed limit"/>
+                                            <TextBlock Classes="RowHint" Text="Per download, e.g. 500K or 2M. Empty means no limit."/>
+                                        </StackPanel>
+                                        <TextBox x:Name="txtRateLimit" Grid.Column="1" Classes="FileName" Width="140" Height="32" FontSize="12"
+                                                 FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}"
+                                                 SelectionBrush="{StaticResource AccentColor}" CaretBrush="{StaticResource TextSecondary}" Watermark="unlimited"/>
+                                    </Grid>
+                                    <Grid Classes="SettingRow" ColumnDefinitions="*,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="Retries"/>
+                                            <TextBlock Classes="RowHint" Text="How often yt-dlp retries a dropped connection before giving up."/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="cmbRetries" Grid.Column="1" Classes="Rounded" Width="140" Height="32" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}">
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="0">0</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="3">3</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="10">10 (default)</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="25">25</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="50">50</ComboBoxItem>
+                                        </ComboBox>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="Proxy"/>
+                                            <TextBlock Classes="RowHint" Text="e.g. http://host:8080 or socks5://127.0.0.1:1080. Empty means direct."/>
+                                        </StackPanel>
+                                        <TextBox x:Name="txtProxy" Grid.Column="1" Classes="FileName" Width="240" Height="32" FontSize="12"
+                                                 FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}"
+                                                 SelectionBrush="{StaticResource AccentColor}" CaretBrush="{StaticResource TextSecondary}" Watermark="none"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- File names -->
+                            <Border Classes="Section">
+                                <StackPanel>
+                                    <TextBlock Classes="SectionTitle" Text="File names"/>
+                                    <Grid Classes="SettingRow" ColumnDefinitions="*,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="Naming preset"/>
+                                            <TextBlock Classes="RowHint" Text="Used whenever the File Name box is empty. A '/' makes a sub-folder."/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="cmbTemplatePreset" Grid.Column="1" Classes="Rounded" Width="290" Height="32" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}"
+                                                  SelectionChanged="cmbTemplatePreset_SelectionChanged"/>
+                                    </Grid>
+                                    <TextBox x:Name="txtTemplate" Classes="FileName" Height="32" FontSize="12" Margin="0,0,0,8"
+                                             FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}"
+                                             SelectionBrush="{StaticResource AccentColor}" CaretBrush="{StaticResource TextSecondary}" Watermark="%(title)s"/>
+                                    <TextBlock x:Name="txtTemplatePreview" Classes="RowHint" Margin="0,0,0,4"/>
+                                    <TextBlock Classes="RowHint" Text="Fields: %(title)s %(id)s %(uploader)s %(upload_date&gt;%Y-%m-%d)s %(playlist_title)s %(playlist_index)03d %(height)s"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Download archive -->
+                            <Border Classes="Section">
+                                <StackPanel>
+                                    <TextBlock Classes="SectionTitle" Text="Download archive"/>
+                                    <TextBlock Classes="RowHint" Margin="0,0,0,10"
+                                               Text="With 'Skip already downloaded' ticked in Options, every finished video is written to this file and skipped next time. Re-run a playlist or channel link to fetch only what's new."/>
+                                    <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,8">
+                                        <TextBox x:Name="txtArchivePath" Classes="FileName" Height="32" FontSize="12"
+                                                 FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}"
+                                                 SelectionBrush="{StaticResource AccentColor}" CaretBrush="{StaticResource TextSecondary}"/>
+                                        <Button Grid.Column="1" Click="ArchiveBrowse_Click" Classes="Secondary" Margin="8,0,0,0" Height="32" Padding="12,0"
+                                                FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" FontSize="11">Browse</Button>
+                                        <Button Grid.Column="2" Click="ArchiveOpen_Click" Classes="Secondary" Margin="8,0,0,0" Height="32" Padding="12,0"
+                                                FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" FontSize="11">Open</Button>
+                                        <Button Grid.Column="3" Click="ArchiveClear_Click" Classes="Secondary" Margin="8,0,0,0" Height="32" Padding="12,0"
+                                                FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" FontSize="11">Clear</Button>
+                                    </Grid>
+                                    <TextBlock x:Name="txtArchiveInfo" Classes="RowHint"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Cookies -->
+                            <Border Classes="Section">
+                                <StackPanel>
+                                    <TextBlock Classes="SectionTitle" Text="Browser cookies"/>
+                                    <Grid Classes="SettingRow" ColumnDefinitions="*,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="Browser profile"/>
+                                            <TextBlock Classes="RowHint" Text="Only if you use several profiles, e.g. 'Profile 1' (Chrome) or 'default-release' (Firefox). Empty uses the default."/>
+                                        </StackPanel>
+                                        <TextBox x:Name="txtBrowserProfile" Grid.Column="1" Classes="FileName" Width="200" Height="32" FontSize="12"
+                                                 FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}"
+                                                 SelectionBrush="{StaticResource AccentColor}" CaretBrush="{StaticResource TextSecondary}" Watermark="default"/>
+                                    </Grid>
+                                    <TextBlock Classes="RowHint"
+                                               Text="Pick the browser under Options &gt; Cookies. On Windows, Chrome-based browsers lock their cookie file while open, so close them fully (or use Firefox) if yt-dlp says it can't read the cookie database."/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Tools -->
+                            <Border Classes="Section">
+                                <StackPanel>
+                                    <TextBlock Classes="SectionTitle" Text="Tools"/>
+                                    <Grid Classes="SettingRow" ColumnDefinitions="*,Auto,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="yt-dlp channel"/>
+                                            <TextBlock x:Name="txtYtDlpVersion" Classes="RowHint" Text="Version: checking..."/>
+                                            <TextBlock Classes="RowHint" Text="Nightly gets site fixes days or weeks before stable. Switch if a site suddenly breaks."/>
+                                        </StackPanel>
+                                        <ComboBox x:Name="cmbChannel" Grid.Column="1" Classes="Rounded" Width="140" Height="32" FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}">
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="Stable">Stable</ComboBoxItem>
+                                            <ComboBoxItem Classes="RoundedItem" FontFamily="{StaticResource JetBrainsReg}" Tag="Nightly">Nightly</ComboBoxItem>
+                                        </ComboBox>
+                                        <Button x:Name="btnCheckYtDlp" Grid.Column="2" Click="CheckYtDlp_Click" Classes="Secondary" Margin="8,0,0,0" Height="32" Padding="12,0"
+                                                FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" FontSize="11">Update now</Button>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="ffmpeg"/>
+                                            <TextBlock x:Name="txtFfmpegStatus" Classes="RowHint" Text="Checking..."/>
+                                            <TextBlock Classes="RowHint" Text="Needed for merging video + audio, audio conversion, trimming and embedding thumbnails."/>
+                                        </StackPanel>
+                                        <Button x:Name="btnInstallFfmpeg" Grid.Column="1" Click="InstallFfmpeg_Click" Classes="Secondary" Height="32" Padding="12,0"
+                                                FontFamily="{StaticResource JetBrainsReg}" Foreground="{StaticResource TextPrimary}" FontSize="11">Download ffmpeg</Button>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Behaviour -->
+                            <Border Classes="Section">
+                                <StackPanel>
+                                    <TextBlock Classes="SectionTitle" Text="Behaviour"/>
+                                    <Grid Classes="SettingRow" ColumnDefinitions="*,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="Preview links automatically"/>
+                                            <TextBlock Classes="RowHint" Text="Fetch title, thumbnail, length, size and available formats as soon as a link is pasted."/>
+                                        </StackPanel>
+                                        <CheckBox x:Name="cbAutoPreview" Grid.Column="1" Classes="Modern" VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <StackPanel Margin="0,0,16,0" VerticalAlignment="Center">
+                                            <TextBlock Classes="RowLabel" Text="Paste links from the clipboard"/>
+                                            <TextBlock Classes="RowHint" Text="When Kleptos gets focus and the URL box is empty, fill it with a link from the clipboard."/>
+                                        </StackPanel>
+                                        <CheckBox x:Name="cbClipboard" Grid.Column="1" Classes="Modern" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
 
                 <!-- Help Page -->
                 <Border x:Name="pnlHelp" IsVisible="False" CornerRadius="12" Background="{StaticResource BackgroundCard}">
@@ -983,27 +1305,39 @@
                                        FontSize="13" TextWrapping="Wrap" Margin="0,0,0,8"/>
                             <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,8"
                                        Text="Many sites, especially YouTube, block anonymous downloads with errors like &quot;Sign in to confirm you're not a bot&quot;, &quot;This video is private&quot;, or plain 403s. To download as yourself, Kleptos needs your browser's cookies."/>
+                            <TextBlock Text="The easy way: read them from your browser" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
+                                       FontSize="12" Margin="0,4,0,6"/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,4"
+                                       Text="1. Log in to the site in your normal browser."/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,4"
+                                       Text="2. In Kleptos, pick that browser under Options &gt; Cookies. That's it, no exporting."/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,12"
+                                       Text="On Windows, Chrome, Edge and Brave lock their cookies while running. If Kleptos says it can't read the cookie database, close the browser completely and retry, or use Firefox, or use a cookies.txt file instead."/>
+                            <TextBlock Text="The fallback: a cookies.txt file" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
+                                       FontSize="12" Margin="0,4,0,6"/>
                             <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,4"
                                        Text="1. Install a cookies.txt export extension in your browser (e.g. 'Get cookies.txt LOCALLY')."/>
                             <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,4"
-                                       Text="2. Log in to the site you want to download from."/>
-                            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,4"
-                                       Text="3. Export the site's cookies to a cookies.txt file."/>
+                                       Text="2. Log in to the site and export its cookies to a cookies.txt file."/>
                             <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,12"
-                                       Text="4. Back in Kleptos, click the Cookies button on the Downloader page and pick that file."/>
+                                       Text="3. In Kleptos, set Options &gt; Cookies to 'cookies.txt file' and choose it."/>
                             <Button Content="Open the extension page" Click="HelpExtension_Click"
                                     Classes="Secondary" FontFamily="{StaticResource JetBrainsReg}"
                                     Foreground="{StaticResource TextPrimary}" FontSize="11" Padding="12,6" Height="30"
                                     HorizontalAlignment="Left" Margin="0,0,0,12"/>
                             <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="11" Margin="0,0,0,20"
-                                       Text="Cookies expire. Kleptos warns you on the Cookies button tooltip when they're getting stale, just export a fresh file. Keep your cookies.txt private; it's basically your login session."/>
+                                       Text="Exported cookies expire. Kleptos warns you under the Cookies option when they're getting stale, just export a fresh file. Keep your cookies.txt private; it's basically your login session."/>
 
                             <TextBlock Text="Quick tips" Foreground="{StaticResource TextPrimary}" FontFamily="{StaticResource JetBrainsReg}"
                                        FontSize="13" Margin="0,0,0,8"/>
                             <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,4"
-                                       Text="Segments: on the Downloader page, the Segments tab lets you trim. Fetch Info, then left-click the timeline to set a start point and right-click for an end point."/>
+                                       Text="Preview: paste a link and Kleptos shows what it is, how long, roughly how big, and every quality on offer. Pick one under 'Exact format' or leave it on Auto."/>
                             <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,4"
-                                       Text="Multi-download: enable it in Settings and paste one URL per line. Add a name after the URL to rename the file."/>
+                                       Text="Channels and playlists: tick 'Download playlists' and 'Skip already downloaded', then re-run the same link whenever you like to grab only new uploads."/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,4"
+                                       Text="Segments: the Segments tab lets you trim. Left-click the timeline to set a start point and right-click for an end point."/>
+                            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,4"
+                                       Text="Multi-download: enable it in Options and paste one URL per line. Put a name before or after the URL to rename the file. Several run at once (see Settings)."/>
                             <TextBlock TextWrapping="Wrap" Foreground="{StaticResource TextSecondary}" FontFamily="{StaticResource JetBrainsReg}" FontSize="12" Margin="0,0,0,4"
                                        Text="Console: the Console tab shows the raw yt-dlp output; the copy button in its corner grabs the full log for bug reports."/>
 
